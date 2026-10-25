@@ -1354,3 +1354,99 @@ h1 {
     animation: none;
   }
 }
+
+/* Court players can be clicked to choose them between games */
+.court:not(.game-running) .court-player {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.court:not(.game-running) .court-player:hover {
+  filter:
+    drop-shadow(0 0 3px #ffffff)
+    drop-shadow(0 0 10px #0a8cff)
+    drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
+}
+
+/* ---------- BIGGER LEGEND/BUCKET TEXT AND GAME BACKGROUND ---------- */
+
+/* Page and game panel colors: charity: water yellow and blue */
+html {
+  min-height: 100%;
+  background-color: #a8dfff;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.container {
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 201, 7, 0.35), transparent 22rem),
+    radial-gradient(circle at 100% 100%, rgba(46, 157, 247, 0.28), transparent 26rem),
+    #fff8d6;
+}
+
+.legend {
+  gap: 12px 16px;
+}
+
+.legend span {
+  padding: 10px 18px;
+  color: #1f1f1f;
+  background: #ffffff;
+  border: 3px solid #1f1f1f;
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 #1f1f1f;
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-weight: 900;
+}
+
+.legend i {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  vertical-align: -3px;
+  border: 2px solid #1f1f1f;
+}
+
+.bucket-label {
+  font-size: clamp(18px, 2.2vw, 22px);
+  letter-spacing: 1.5px;
+}
+
+#bucket-progress {
+  padding: 12px 22px;
+  font-size: clamp(22px, 2.8vw, 30px);
+}
+
+.beneficiary-card h2 {
+  font-size: clamp(28px, 3.2vw, 36px);
+}
+
+/* Sky-blue panel behind the court and the bucket card */
+.game-layout {
+  padding: clamp(14px, 2.5vw, 28px);
+  background:
+    radial-gradient(circle at 20% 0, rgba(255, 255, 255, 0.7), transparent 18rem),
+    linear-gradient(160deg, #bfe7ff, #7cc9fb);
+  border: 3px solid #1f1f1f;
+  border-radius: 22px;
+  box-shadow: 5px 5px 0 #ffc907;
+}
+
+/* Start/Reset now sit at the top of the girl card */
+.beneficiary-card .controls {
+  margin: 0 0 18px;
+  flex-wrap: wrap;
+}
+
+.beneficiary-card #start-game,
+.beneficiary-card #reset-game {
+  min-height: 52px;
+  padding: 12px 22px;
+}
+
+.beneficiary-card #start-game:disabled {
+  color: #1f1f1f;
+}

@@ -79,7 +79,7 @@
       </div>
 
       <p id="player-select-hint" class="player-select-hint">
-        Select a player to unlock Start Game.
+        Click a player button or a player on the court to unlock Start Game.
       </p>
     </section>
 
@@ -175,6 +175,16 @@
 
       <!-- Main girl and changing bucket -->
       <aside class="beneficiary-card">
+        <div class="controls">
+          <button id="start-game" type="button" disabled>
+            Start Game
+          </button>
+
+          <button id="reset-game" type="button">
+            Reset
+          </button>
+        </div>
+
         <h2>Deliver the Water</h2>
 
         <div class="girl-bucket-scene">
@@ -214,16 +224,6 @@
         <i class="miss-key"></i>
         Not your turn: no penalty
       </span>
-    </div>
-
-    <div class="controls">
-      <button id="start-game" type="button" disabled>
-        Start Game
-      </button>
-
-      <button id="reset-game" type="button">
-        Reset
-      </button>
     </div>
 
     <p class="mission-message">

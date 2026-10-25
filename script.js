@@ -364,6 +364,7 @@ function startGame() {
   startButton.disabled = true;
   startButton.textContent = "Level " + level + " Running";
   setPlayerButtonsDisabled(true);
+  court.classList.add("game-running");
 
   confettiContainer.innerHTML = "";
 
@@ -405,6 +406,7 @@ function endGame() {
 
   startButton.disabled = false;
   setPlayerButtonsDisabled(false);
+  court.classList.remove("game-running");
 
   const playerWon = score >= getGoal();
   const messages = playerWon ? winningMessages : losingMessages;
@@ -457,6 +459,7 @@ function resetGame() {
   startButton.disabled = selectedPlayer === null;
   startButton.textContent = "Start Game";
   setPlayerButtonsDisabled(false);
+  court.classList.remove("game-running");
 
   confettiContainer.innerHTML = "";
 
@@ -505,6 +508,13 @@ function createConfetti() {
 playerButtons.forEach(function (button) {
   button.addEventListener("click", function () {
     selectPlayer(Number(button.dataset.player));
+  });
+});
+
+// Players on the court can be clicked too
+courtPlayers.forEach(function (player, index) {
+  player.addEventListener("click", function () {
+    selectPlayer(index + 1);
   });
 });
 
