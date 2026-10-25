@@ -1,15 +1,17 @@
 // Game settings
-const GAME_TIME = 60;
-const COLA_CHANCE = 0.2;
+const GAME_TIME = 45;
+const TIME_STEP = 5;
+const MIN_GAME_TIME = 40;
+const COLA_CHANCE = 0.15;
 const COLA_PENALTY = 2;
 
 // Each level is a little faster and asks for a little more
-const BASE_GOAL = 10;
-const GOAL_STEP = 2;
-const MAX_GOAL = 20;
+const BASE_GOAL = 8;
+const GOAL_EVERY = 2; // goal grows by 1 every 2 levels
+const MAX_GOAL = 16;
 const BASE_SPAWN_SPEED = 1500;
-const SPEED_STEP = 150;
-const MIN_SPAWN_SPEED = 700;
+const SPEED_STEP = 100;
+const MIN_SPAWN_SPEED = 800;
 
 // Game state
 let level = 1;
@@ -18,8 +20,8 @@ let score = 0;
 let timeLeft = GAME_TIME;
 let gameActive = false;
 let selectedPlayer = null;
-let currentItemType = null;
-let currentSquare = null;
+let activeItems = [];
+const itemPool = [];
 let turnCount = 0;
 let spawnTimeout;
 let timerInterval;
@@ -63,7 +65,9 @@ const scoreDisplay = document.getElementById("current-cans");
 const timerDisplay = document.getElementById("timer");
 const achievementDisplay = document.getElementById("achievements");
 const turnStatus = document.getElementById("turn-status");
+const bucketWaterLevel = document.getElementById("bucket-water-level");
 const gameItem = document.getElementById("game-item");
+itemPool.push(gameItem);
 const arrow = document.getElementById("direction-arrow");
 const startButton = document.getElementById("start-game");
 const resetButton = document.getElementById("reset-game");
@@ -77,14 +81,6 @@ const courtPlayers = document.querySelectorAll(".court-player");
 const court = document.getElementById("game-court");
 const courtSquares = document.querySelectorAll(".court-square");
 
-// Where the item appears in each of the four squares (index 0-3)
-const squarePositions = [
-  { left: 40, top: 30 },
-  { left: 60, top: 30 },
-  { left: 40, top: 72 },
-  { left: 60, top: 72 }
-];
-
 // The three arrows inside AROWS.png
 const arrowClasses = [
   "arrow-right",
@@ -93,7 +89,12 @@ const arrowClasses = [
 ];
 
 function getGoal() {
-  return Math.min(MAX_GOAL, BASE_GOAL + (level - 1) * GOAL_STEP);
+  return Math.min(MAX_GOAL, BASE_GOAL + Math.floor((level - 1) / GOAL_EVERY));
+}
+
+// Each level gives less time
+function getGameTime() {
+  return Math.max(MIN_GAME_TIME, GAME_TIME - (level - 1) * TIME_STEP);
 }
 
 function getSpawnSpeed() {
@@ -117,6 +118,17 @@ function updateDisplay() {
     Math.min(score, goal) + " / " + goal + " bottles";
 
   updateBucket();
+  updateLegend();
+}
+
+// Show only this level's bad item in the legend
+function updateLegend() {
+  const shown = level <= badItemByLevel.length ? badItemByLevel[level - 1] : "all";
+
+  ["cola", "gas", "orange", "red"].forEach(function (type) {
+    document.getElementById("legend-" + type).hidden =
+      shown !== "all" && shown !== type;
+  });
 }
 
 // Change the bucket picture as the score increases
@@ -125,6 +137,10 @@ function updateBucket() {
     bucketImages.length - 1,
     Math.floor((score / getGoal()) * (bucketImages.length - 1))
   );
+
+  // Water level rises a little with every bottle
+  bucketWaterLevel.style.height =
+    Math.min(100, (score / getGoal()) * 100) + "%";
 
   bucketImage.src = bucketImages[bucketStage];
   bucketImage.alt = bucketNames[bucketStage];
@@ -194,12 +210,13 @@ function selectPlayer(playerNumber) {
   );
 }
 
-// Remove the item, arrow, and square glow
+// Remove every item, the arrow, and the square glow
 function hideItem() {
-  gameItem.className = "game-item";
+  itemPool.forEach(function (el) {
+    el.className = "game-item";
+  });
+  activeItems = [];
   arrow.className = "direction-arrow";
-  currentItemType = null;
-  currentSquare = null;
   highlightSquare(-1);
 }
 
@@ -226,79 +243,119 @@ function pickSquare() {
   return otherSquares[Math.floor(Math.random() * otherSquares.length)];
 }
 
-// Make a water bottle or cola can appear
+const badItemInfo = {
+  cola: { label: "dirty water" },
+  gas: { label: "gas can" },
+  orange: { label: "orange soda" },
+  red: { label: "red soda" }
+};
+
+// One bad item per level: dirty water, gas can, orange soda, red soda.
+// After level 4 it is picked at random from all of them.
+const badItemByLevel = ["cola", "gas", "orange", "red"];
+
+function getBadType() {
+  if (level <= badItemByLevel.length) {
+    return badItemByLevel[level - 1];
+  }
+
+  return badItemByLevel[Math.floor(Math.random() * badItemByLevel.length)];
+}
+
+// Get a reusable item button (the first one is the original in the HTML)
+function getItemElement(index) {
+  while (itemPool.length <= index) {
+    const clone = gameItem.cloneNode(false);
+    clone.removeAttribute("id");
+    clone.className = "game-item";
+    clone.addEventListener("click", collectItem);
+    court.appendChild(clone);
+    itemPool.push(clone);
+  }
+
+  return itemPool[index];
+}
+
+// Show one item (water or a bad item) inside a square
+function placeItem(index, type, squareIndex) {
+  const el = getItemElement(index);
+  // Random spot inside the square so items keep moving around
+  el.style.left = (squareIndex % 2) * 50 + 17 + Math.random() * 16 + "%";
+  el.style.top = Math.floor(squareIndex / 2) * 50 + 17 + Math.random() * 16 + "%";
+
+  el.className = "game-item visible " + type + "-item";
+
+
+  el.setAttribute(
+    "aria-label",
+    type === "water" ? "Collect water bottle" : "Avoid " + badItemInfo[type].label
+  );
+
+  activeItems.push({ el: el, type: type, square: squareIndex });
+}
+
+// Make the items for this turn appear
 function spawnItem() {
   if (!gameActive) {
     return;
   }
 
-  const squareIndex = pickSquare();
-  const position = squarePositions[squareIndex];
-  const itemVariant = Math.floor(Math.random() * 3);
+  hideItem();
+
+  const waterSquare = pickSquare();
   const randomArrow = Math.floor(Math.random() * arrowClasses.length);
 
-  currentSquare = squareIndex;
-  currentItemType = Math.random() < COLA_CHANCE ? "cola" : "water";
-
-  gameItem.className =
-    "game-item visible " + currentItemType + "-item";
-
-  gameItem.style.left = position.left + "%";
-  gameItem.style.top = position.top + "%";
-
-  /*
-  WATER BOTTLES.png and COLA CANS.png each contain
-  three pictures horizontally.
-
-  0%, 50%, or 100% selects only one picture.
-  */
-  gameItem.style.backgroundPosition = itemVariant * 50 + "% center";
-
-  gameItem.setAttribute(
-    "aria-label",
-    currentItemType === "water"
-      ? "Collect water bottle"
-      : "Avoid cola can"
-  );
+  placeItem(0, Math.random() < COLA_CHANCE ? getBadType() : "water", waterSquare);
 
   arrow.className =
     "direction-arrow visible " + arrowClasses[randomArrow];
 
-  const isMySquare = squareIndex === selectedPlayer - 1;
+  const myIndex = selectedPlayer - 1;
+  const mine = activeItems.find(function (item) {
+    return item.square === myIndex;
+  });
 
-  if (currentItemType === "water" && isMySquare) {
-    highlightSquare(squareIndex);
+  if (mine && mine.type === "water") {
+    highlightSquare(myIndex);
     showTurnStatus("YOUR TURN — CLICK NOW!", "your-turn");
-  } else if (currentItemType === "cola" && isMySquare) {
+  } else if (mine) {
     highlightSquare(-1);
-    showTurnStatus("COLA CAN! DON'T CLICK!", "cola");
+    showTurnStatus(
+      mine.type === "cola" ? "DIRTY WATER! DON'T CLICK!" : "NOT WATER! DON'T CLICK!",
+      "cola"
+    );
   } else {
     highlightSquare(-1);
     showTurnStatus("WAIT FOR YOUR TURN", "wait");
   }
 
-  // The item stays until it is clicked or this turn ends
+  // The items stay until one is clicked or this turn ends
   scheduleNextItem(getSpawnSpeed());
 }
 
-// Run when the bottle or can is clicked
+// Run when an item is clicked
 function collectItem(event) {
   event.stopPropagation();
 
-  if (!gameActive || !currentItemType) {
+  const item = activeItems.find(function (entry) {
+    return entry.el === event.currentTarget;
+  });
+
+  if (!gameActive || !item) {
     return;
   }
 
-  if (currentItemType === "cola") {
+  if (item.type !== "water") {
     score = Math.max(0, score - COLA_PENALTY);
 
     showFeedback(
-      "Oh no, cola! -" + COLA_PENALTY + " points",
+      "Oh no, " + "the " + badItemInfo[item.type].label +
+        " is not water! -" + COLA_PENALTY + " points",
       "penalty"
     );
 
     flashPenalty();
-  } else if (currentSquare === selectedPlayer - 1) {
+  } else if (item.square === selectedPlayer - 1) {
     score = score + 1;
 
     showFeedback(
@@ -357,7 +414,7 @@ function startGame() {
   }
 
   score = 0;
-  timeLeft = GAME_TIME;
+  timeLeft = getGameTime();
   turnCount = 0;
   gameActive = true;
 
@@ -449,7 +506,7 @@ function resetGame() {
   score = 0;
   level = 1;
   levelCleared = false;
-  timeLeft = GAME_TIME;
+  timeLeft = getGameTime();
   turnCount = 0;
 
   hideItem();

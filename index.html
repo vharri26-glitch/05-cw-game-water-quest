@@ -43,7 +43,7 @@
     <a
       class="logo-link"
       href="https://www.charitywater.org/"
-      target="_blank"
+      target="_blank" rel="noopener noreferrer"
     >
       <img
         class="logo"
@@ -65,7 +65,7 @@
       Pick a player, then tap the water bottle only when it reaches
       your square. Collect the bottles before time runs out. Each
       level gets faster!
-      Avoid cola cans!
+      Avoid dirty water!
     </p>
 
     <section class="player-select" aria-labelledby="choose-player-title">
@@ -81,6 +81,16 @@
       <p id="player-select-hint" class="player-select-hint">
         Click a player button or a player on the court to unlock Start Game.
       </p>
+
+      <div class="controls">
+        <button id="start-game" type="button" disabled>
+          Start Game
+        </button>
+
+        <button id="reset-game" type="button">
+          Reset
+        </button>
+      </div>
     </section>
 
     <section class="stats">
@@ -96,7 +106,7 @@
 
       <p>
         Time
-        <span id="timer">60</span>s
+        <span id="timer">45</span>s
       </p>
     </section>
 
@@ -169,22 +179,12 @@
         </div>
 
         <p class="court-hint">
-          Tap the water bottle only when it reaches your square. Never tap the cola can!
+          Tap the water bottle only when it reaches your square. Never tap the dirty water!
         </p>
       </div>
 
       <!-- Main girl and changing bucket -->
       <aside class="beneficiary-card">
-        <div class="controls">
-          <button id="start-game" type="button" disabled>
-            Start Game
-          </button>
-
-          <button id="reset-game" type="button">
-            Reset
-          </button>
-        </div>
-
         <h2>Deliver the Water</h2>
 
         <div class="girl-bucket-scene">
@@ -196,6 +196,10 @@
             <span>🎉</span><span>✨</span><span>🎉</span><span>✨</span>
           </div>
 
+          <div class="bucket-water" aria-hidden="true">
+            <div id="bucket-water-level" class="bucket-water-level"></div>
+          </div>
+
           <img
             id="bucket-image"
             class="bucket-image"
@@ -205,7 +209,7 @@
         </div>
 
         <p class="bucket-label">Bucket Progress</p>
-        <strong id="bucket-progress">0 / 10 bottles</strong>
+        <strong id="bucket-progress">0 / 8 bottles</strong>
       </aside>
     </section>
 
@@ -215,9 +219,24 @@
         Water bottle: +1
       </span>
 
-      <span>
+      <span id="legend-cola">
         <i class="cola-key"></i>
-        Cola can: -2 (never click it!)
+        Dirty water: -2 (never click it!)
+      </span>
+
+      <span id="legend-gas" hidden>
+        <img class="legend-icon" src="img/GAS CAN.png" alt="">
+        Gas can: -2 (never click it!)
+      </span>
+
+      <span id="legend-orange" hidden>
+        <img class="legend-icon" src="img/ORANGE SODA.png" alt="">
+        Orange soda: -2 (never click it!)
+      </span>
+
+      <span id="legend-red" hidden>
+        <img class="legend-icon" src="img/RED SODA CAN.png" alt="">
+        Red soda: -2 (never click it!)
       </span>
 
       <span>
@@ -231,7 +250,7 @@
 
       <a
         href="https://www.charitywater.org/"
-        target="_blank"
+        target="_blank" rel="noopener noreferrer"
       >
         Learn more about charity: water.
       </a>

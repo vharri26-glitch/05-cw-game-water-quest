@@ -218,11 +218,11 @@ three items horizontally. JavaScript selects one.
 }
 
 .game-item.water-item {
-  background-image: url("img/WATER BOTTLES.png");
+  background-image: url("img/CLEAN WATER BOTTLE.png");
 }
 
 .game-item.cola-item {
-  background-image: url("img/COLA CANS.png");
+  background-image: url("img/DIRTY WATER.png");
 }
 
 /*
@@ -1449,4 +1449,162 @@ body {
 
 .beneficiary-card #start-game:disabled {
   color: #1f1f1f;
+}
+
+/* Gas can and sodas are single transparent images */
+.game-item.gas-item,
+.game-item.orange-item,
+.game-item.red-item {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 5px 3px rgba(0, 0, 0, 0.35));
+}
+
+.game-item.gas-item {
+  background-image: url("img/GAS CAN.png");
+  aspect-ratio: 1;
+}
+
+.game-item.orange-item {
+  background-image: url("img/ORANGE SODA.png");
+  aspect-ratio: 0.67;
+}
+
+.game-item.red-item {
+  background-image: url("img/RED SODA CAN.png");
+  aspect-ratio: 0.67;
+}
+
+.legend-icon {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.legend [hidden] {
+  display: none;
+}
+
+.legend-emoji {
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
+/* Water that rises inside the bucket with every bottle */
+.bucket-water {
+  position: absolute;
+  right: 3%;
+  bottom: 0;
+  z-index: 4;
+  width: 53%;
+  height: 42%;
+  pointer-events: none;
+  clip-path: polygon(13% 24%, 87% 24%, 78% 90%, 24% 90%);
+}
+
+.bucket-water-level {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  background: linear-gradient(180deg, rgba(120, 215, 255, 0.85), rgba(8, 120, 201, 0.85));
+  border-top: 3px solid rgba(255, 255, 255, 0.8);
+  transition: height 0.45s ease-out;
+}
+
+
+/* Clean and dirty water are single transparent images (not 3-up sheets) */
+.game-item.water-item,
+.game-item.cola-item {
+  background-position: center;
+  background-size: contain;
+  filter: drop-shadow(0 5px 3px rgba(0, 0, 0, 0.35));
+}
+
+.game-item.water-item {
+  aspect-ratio: 0.7;
+}
+
+.game-item.cola-item {
+  aspect-ratio: 0.9;
+}
+
+/* Start and Reset live in the Choose Your Player panel (always on screen) */
+.player-select .controls {
+  margin: 14px 0 0;
+  flex-wrap: wrap;
+}
+
+.player-select #start-game,
+.player-select #reset-game {
+  min-height: 56px;
+  padding: 14px 32px;
+  font-size: clamp(18px, 2.4vw, 22px);
+}
+
+.player-select #start-game:disabled {
+  color: #1f1f1f;
+}
+
+/* Small phones: keep Start/Reset near the top and on one line */
+@media (max-width: 480px) {
+  .game-instructions {
+    margin: 14px auto 16px;
+    padding: 12px 14px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .player-select #start-game,
+  .player-select #reset-game {
+    min-height: 52px;
+    padding: 12px 18px;
+    font-size: 17px;
+    white-space: nowrap;
+  }
+}
+
+/* Arrows: clean transparent sheet (white arrows with dark outline) */
+.direction-arrow {
+  background-image: url("img/ARROWS TRANSPARENT.png");
+  background-size: 100% 300%;
+  mix-blend-mode: normal;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.3));
+  opacity: 0.9;
+}
+
+/* Very narrow phones: keep Level / Score / Time inside the screen */
+.stats p {
+  min-width: 0;
+}
+
+@media (max-width: 400px) {
+  .stats {
+    gap: 5px;
+  }
+
+  .stats p {
+    padding: 10px 8px;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .stats span {
+    font-size: 20px;
+  }
+}
+
+/* Final readability pass */
+.achievement {
+  font-size: clamp(18px, 2.4vw, 24px);
+}
+
+.player-choice {
+  min-height: 48px;
+  padding: 10px 20px;
+  font-size: clamp(16px, 2vw, 20px);
 }
