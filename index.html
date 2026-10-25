@@ -1,23 +1,245 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>Water Quest</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Four for Water</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div class="container">
-    <h1>Water Quest</h1>
-    <p class="game-instructions">Collect 20 items to complete the game!</p>
-    <div class="stats">
-      <p>Cans Collected: <span id="current-cans">0</span></p>
-      <p>Time Left: <span id="timer">30</span>s</p>
+  <!-- Removes the pale textured background of the bucket images.
+       Background pixels have high red + blue; the bucket and water do not. -->
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+    <filter id="remove-white" color-interpolation-filters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                -14 0 -14 0 18.9"
+        result="keyed"
+      />
+      <feComposite in="keyed" in2="SourceAlpha" operator="in" />
+    </filter>
+  </svg>
+
+  <!-- Removes the near-black background of the bottle and can sprites -->
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+    <filter id="remove-black" color-interpolation-filters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                10 10 10 0 -4"
+        result="keyed"
+      />
+      <feComposite in="keyed" in2="SourceAlpha" operator="in" />
+    </filter>
+  </svg>
+
+  <main class="container">
+    <a
+      class="logo-link"
+      href="https://www.charitywater.org/"
+      target="_blank"
+    >
+      <img
+        class="logo"
+        src="img/cw_logo_horizontal.png"
+        alt="charity: water"
+      >
+    </a>
+
+    <p class="eyebrow">OLD-SCHOOL PLAY. REAL-WORLD PURPOSE.</p>
+
+    <h1>
+      Four for
+      <span class="water-word">
+        Water<span class="title-drop">💧</span>
+      </span>
+    </h1>
+
+    <p class="game-instructions">
+      Pick a player, then tap the water bottle only when it reaches
+      your square. Collect the bottles before time runs out. Each
+      level gets faster!
+      Avoid cola cans!
+    </p>
+
+    <section class="player-select" aria-labelledby="choose-player-title">
+      <h2 id="choose-player-title">Choose Your Player</h2>
+
+      <div class="player-buttons" role="group" aria-labelledby="choose-player-title">
+        <button type="button" class="player-choice" data-player="1" aria-pressed="false">Player 1</button>
+        <button type="button" class="player-choice" data-player="2" aria-pressed="false">Player 2</button>
+        <button type="button" class="player-choice" data-player="3" aria-pressed="false">Player 3</button>
+        <button type="button" class="player-choice" data-player="4" aria-pressed="false">Player 4</button>
+      </div>
+
+      <p id="player-select-hint" class="player-select-hint">
+        Select a player to unlock Start Game.
+      </p>
+    </section>
+
+    <section class="stats">
+      <p>
+        Level
+        <span id="level">1</span>
+      </p>
+
+      <p>
+        Score
+        <span id="current-cans">0</span>
+      </p>
+
+      <p>
+        Time
+        <span id="timer">60</span>s
+      </p>
+    </section>
+
+    <div
+      id="achievements"
+      class="achievement"
+      role="status"
+      aria-live="polite"
+    >
+      Press Start Game when you are ready.
     </div>
-    <div id="achievements" class="achievement"></div>
-    <div class="game-grid"></div>
-    <button id="start-game">Start Game</button>
-  </div>
+
+    <section class="game-layout">
+      <div class="court-section">
+        <div
+          id="turn-status"
+          class="turn-status idle"
+          role="status"
+          aria-live="polite"
+        >
+          Choose your player to begin
+        </div>
+
+        <div id="game-court" class="court choose-mode">
+
+          <!-- Square highlights for the turn system -->
+          <div class="court-square square-one" aria-hidden="true"></div>
+          <div class="court-square square-two" aria-hidden="true"></div>
+          <div class="court-square square-three" aria-hidden="true"></div>
+          <div class="court-square square-four" aria-hidden="true"></div>
+
+          <span id="you-label" class="you-label" aria-hidden="true">YOU</span>
+
+          <!-- Four players -->
+          <img class="court-player player-one"
+               src="img/GIRL ONE ANIMATED.png"
+               alt="Player one">
+
+          <img class="court-player player-two"
+               src="img/BOY ONE ANIMATED.png"
+               alt="Player two">
+
+          <img class="court-player player-three"
+               src="img/GIRL TWO ANIMATED.png"
+               alt="Player three">
+
+          <img class="court-player player-four"
+               src="img/BOY TWO ANIMATED.png"
+               alt="Player four">
+
+          <span class="court-number number-one">1</span>
+          <span class="court-number number-two">2</span>
+          <span class="court-number number-three">3</span>
+          <span class="court-number number-four">4</span>
+
+          <!-- Only one arrow is shown at a time -->
+          <div
+            id="direction-arrow"
+            class="direction-arrow"
+            aria-hidden="true"
+          ></div>
+
+          <!-- Water bottles and cola appear here -->
+          <button
+            id="game-item"
+            class="game-item"
+            type="button"
+            aria-label="Collect item"
+          ></button>
+        </div>
+
+        <p class="court-hint">
+          Tap the water bottle only when it reaches your square. Never tap the cola can!
+        </p>
+      </div>
+
+      <!-- Main girl and changing bucket -->
+      <aside class="beneficiary-card">
+        <h2>Deliver the Water</h2>
+
+        <div class="girl-bucket-scene">
+          <img class="main-girl"
+               src="img/MAIN GIRL ANIMATED.png"
+               alt="Girl waiting for clean water">
+
+          <div id="celebration-sparkles" class="celebration-sparkles" aria-hidden="true">
+            <span>🎉</span><span>✨</span><span>🎉</span><span>✨</span>
+          </div>
+
+          <img
+            id="bucket-image"
+            class="bucket-image"
+            src="img/EMPTY BUCKET.png"
+            alt="Empty water bucket"
+          >
+        </div>
+
+        <p class="bucket-label">Bucket Progress</p>
+        <strong id="bucket-progress">0 / 10 bottles</strong>
+      </aside>
+    </section>
+
+    <div class="legend">
+      <span>
+        <i class="water-key"></i>
+        Water bottle: +1
+      </span>
+
+      <span>
+        <i class="cola-key"></i>
+        Cola can: -2 (never click it!)
+      </span>
+
+      <span>
+        <i class="miss-key"></i>
+        Not your turn: no penalty
+      </span>
+    </div>
+
+    <div class="controls">
+      <button id="start-game" type="button" disabled>
+        Start Game
+      </button>
+
+      <button id="reset-game" type="button">
+        Reset
+      </button>
+    </div>
+
+    <p class="mission-message">
+      Just because something is liquid does not mean it is safe to drink.
+
+      <a
+        href="https://www.charitywater.org/"
+        target="_blank"
+      >
+        Learn more about charity: water.
+      </a>
+    </p>
+  </main>
+
+  <div id="confetti" class="confetti"></div>
+
   <script src="script.js"></script>
 </body>
 </html>

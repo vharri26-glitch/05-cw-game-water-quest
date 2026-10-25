@@ -1,143 +1,1356 @@
-/* Charity: water Brand Colors & Fonts
-
-Primary Colors:
-- Yellow:     #FFC907
-- Blue:       #2E9DF7
-
-Secondary Colors:
-- Light Blue: #8BD1CB
-- Green:      #4FCB53
-- Orange:     #FF902A
-- Red:        #F5402C
-- Dark Green: #159A48
-- Pink:       #F16061
-
-Fonts:
-- Proxima Nova
-- Avenir
-
-*/
+/* charity: water colors */
+:root {
+  --yellow: #ffc907;
+  --blue: #2e9df7;
+  --dark-blue: #0878c9;
+  --black: #1f1f1f;
+  --white: #ffffff;
+  --cream: #fffdf5;
+  --gray: #666057;
+  --red: #f5402c;
+}
 
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: Arial, sans-serif;
+  min-width: 320px;
+  min-height: 100vh;
   margin: 0;
-  padding: 30px;
-  background-color: #f0f0f0;
-  color: #333;
+  padding: 24px;
+  color: var(--black);
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(255, 201, 7, 0.3),
+      transparent 24rem
+    ),
+    var(--cream);
 }
 
 .container {
-  max-width: 750px;
-  margin: 50px auto;
-  background-color: #fff;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: min(1040px, 100%);
+  margin: 20px auto;
+  padding: clamp(20px, 4vw, 40px);
+  background: var(--white);
+  border: 3px solid var(--black);
+  border-radius: 22px;
+  box-shadow: 10px 10px 0 var(--yellow);
+}
+
+.logo-link {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 22px;
+}
+
+.logo {
+  display: block;
+  width: min(210px, 65vw);
+  height: auto;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 h1 {
+  margin: 0;
   text-align: center;
-  font-size: 30px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #333;
+  font-size: clamp(38px, 8vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -3px;
 }
 
-h1 img {
-  height: 50px;
-  margin-right: 15px;
-  display: block;
+h1 span {
+  color: var(--blue);
 }
 
 .game-instructions {
-  font-size: 18px;
-  margin-bottom: 30px;
+  max-width: 620px;
+  margin: 18px auto 24px;
+  color: var(--gray);
   text-align: center;
+  line-height: 1.5;
 }
 
+/* Score and timer */
 .stats {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 30px;
-  background-color: #f5f5f5;
-  padding: 15px 0;
-  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stats p {
   margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
-
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin: 0 auto;
-  max-width: 500px;
-}
-
-.grid-cell {
-  background-color: #e8e8e8;
-  border-radius: 8px;
-  aspect-ratio: 1;
+  padding: 14px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  background: #f3f0e7;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.stats p:last-child {
+  color: var(--white);
+  background: var(--black);
+}
+
+.stats span {
+  font-size: 24px;
+}
+
+/* Game messages */
+.achievement {
+  min-height: 52px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  background: #edf7ff;
+  border-left: 6px solid var(--blue);
+  border-radius: 6px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.achievement.good {
+  background: #edf7ff;
+  border-color: var(--blue);
+}
+
+.achievement.win {
+  background: #fff7cf;
+  border-color: var(--yellow);
+}
+
+.achievement.lose,
+.achievement.penalty {
+  color: #982d20;
+  background: #fff0ed;
+  border-color: var(--red);
+}
+
+/* Court and beneficiary layout */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.5fr);
+  gap: clamp(20px, 4vw, 40px);
+  align-items: center;
+}
+
+/* Four-square court */
+.court {
   position: relative;
-  overflow: hidden;
-}
-
-.water-can-wrapper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70px;
-  height: 70px;
-  /* Ensure the wrapper is properly centered */
-}
-
-.water-can {
   width: 100%;
-  height: 100%;
-  background-image: url('img/water-can.png');
-  background-size: cover;
-  background-repeat: no-repeat;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: var(--yellow);
+  background-image: url("img/PLAYGROUND.png");
   background-position: center;
-  cursor: pointer;
-  border-radius: 50%;
-  animation: popUp 0.5s cubic-bezier(0.17, 0.67, 0.34, 2);
-  transform-origin: center; /* Ensure scaling happens from the center */
+  background-size: cover;
+  border: 5px solid var(--black);
+  border-radius: 10px;
+  cursor: crosshair;
 }
 
-@keyframes popUp {
-  0% {
-    transform: scale(0.5); /* Start scaling from the center */
-  }
-  100% {
-    transform: scale(1); /* End scaling at full size */
-  }
+/* Four court players */
+.court-player {
+  position: absolute;
+  z-index: 2;
+  width: 21%;
+  max-height: 36%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.28));
 }
 
+.player-one {
+  top: 8%;
+  left: 13%;
+}
 
-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
+.player-two {
+  top: 8%;
+  right: 13%;
+}
+
+.player-three {
+  bottom: 8%;
+  left: 13%;
+}
+
+.player-four {
+  right: 13%;
+  bottom: 8%;
+}
+
+/*
+The water bottle and cola pictures each contain
+three items horizontally. JavaScript selects one.
+*/
+.game-item {
+  position: absolute;
+  z-index: 5;
+  width: 15%;
+  aspect-ratio: 0.8;
+  padding: 0;
+  display: none;
+  background-color: transparent;
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 300% 100%;
+  border: 0;
   cursor: pointer;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 5px 3px rgba(0, 0, 0, 0.3));
+  animation: item-pop 0.25s ease-out;
+}
+
+.game-item.visible {
   display: block;
-  margin: 30px auto 0;
-  transition: background-color 0.2s;
+}
+
+.game-item.water-item {
+  background-image: url("img/WATER BOTTLES.png");
+}
+
+.game-item.cola-item {
+  background-image: url("img/COLA CANS.png");
+}
+
+/*
+AROWS.png contains three arrows vertically.
+The code displays only one-third of it at a time.
+*/
+.direction-arrow {
+  position: absolute;
+  top: 41%;
+  left: 42%;
+  z-index: 4;
+  width: 16%;
+  aspect-ratio: 0.78;
+  display: none;
+  background-image: url("img/AROWS.png");
+  background-repeat: no-repeat;
+  background-size: 100% 300%;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.direction-arrow.visible {
+  display: block;
+}
+
+/* Top arrow */
+.direction-arrow.arrow-right {
+  background-position: center top;
+}
+
+/* Middle arrow */
+.direction-arrow.arrow-left {
+  background-position: center center;
+}
+
+/* Bottom arrow */
+.direction-arrow.arrow-curve {
+  background-position: center bottom;
+}
+
+.court-hint {
+  margin: 10px 0 0;
+  color: var(--gray);
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Main girl and bucket */
+.beneficiary-card {
+  padding: 18px;
+  text-align: center;
+  background: #fff9dd;
+  border: 2px solid var(--black);
+  border-radius: 18px;
+}
+
+.beneficiary-card h2 {
+  margin: 0 0 12px;
+}
+
+.girl-bucket-scene {
+  position: relative;
+  width: min(220px, 100%);
+  min-height: 285px;
+  margin: 0 auto;
+}
+
+.main-girl {
+  width: 100%;
+  max-height: 285px;
+  object-fit: contain;
+}
+
+/* Places the changing bucket with the main girl */
+.bucket-image {
+  position: absolute;
+  right: 3%;
+  bottom: 0;
+  z-index: 3;
+  width: 53%;
+  height: 42%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.22));
+}
+
+.bucket-label {
+  margin: 12px 0 6px;
+  color: var(--gray);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#bucket-progress {
+  display: block;
+  color: var(--dark-blue);
+}
+
+/* Score guide */
+.legend {
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  color: var(--gray);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.legend i {
+  width: 13px;
+  height: 13px;
+  margin-right: 6px;
+  display: inline-block;
+  vertical-align: -2px;
+  border-radius: 3px;
+}
+
+.water-key {
+  background: var(--blue);
+}
+
+.cola-key {
+  background: var(--red);
+}
+
+.miss-key {
+  background: var(--black);
+}
+
+/* Buttons */
+.controls {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+#start-game,
+#reset-game {
+  min-height: 48px;
+  margin: 0;
+  padding: 11px 24px;
+  color: var(--black);
+  background: var(--yellow);
+  border: 2px solid var(--black);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--black);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+#reset-game {
+  background: var(--white);
+}
+
+#start-game:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mission-message {
+  margin: 26px 0 0;
+  color: var(--gray);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mission-message a {
+  color: var(--dark-blue);
+  font-weight: 800;
+}
+
+/* Confetti */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10%;
+  width: 11px;
+  height: 20px;
+  animation: confetti-fall 3s linear forwards;
+}
+
+/* Animations */
+@keyframes item-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(115vh) rotate(650deg);
+  }
+}
+
+/* Tablet and mobile layout */
+@media (max-width: 760px) {
+  body {
+    padding: 12px;
+  }
+
+  .container {
+    margin: 8px auto;
+    padding: 20px 16px;
+    box-shadow: 6px 6px 0 var(--yellow);
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .girl-bucket-scene {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    gap: 7px;
+  }
+
+  .stats p {
+    padding: 11px;
+    font-size: 13px;
+  }
+
+  .stats span {
+    font-size: 19px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #start-game,
+  #reset-game {
+    padding: 10px 12px;
+  }
+}
+
+/* ---------- VISUAL REDESIGN ---------- */
+
+body {
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 201, 7, 0.92),
+      transparent 22rem
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(46, 157, 247, 0.72),
+      transparent 27rem
+    ),
+    linear-gradient(
+      145deg,
+      #fff4b5 0%,
+      #d9f1ff 52%,
+      #a8dfff 100%
+    );
+  background-attachment: fixed;
+}
+
+.container {
+  width: min(1180px, 100%);
+  box-shadow:
+    12px 12px 0 #ffc907,
+    0 24px 55px rgba(8, 75, 122, 0.22);
+}
+
+h1 {
+  font-size: clamp(48px, 8vw, 82px);
+  letter-spacing: -4px;
+  text-shadow: 3px 3px 0 rgba(255, 201, 7, 0.55);
+}
+
+.water-word {
+  color: #2e9df7;
+}
+
+.title-drop {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 0.7em;
+  vertical-align: 0.05em;
+  filter: drop-shadow(2px 3px 0 #b8e4ff);
+  transform: rotate(8deg);
+}
+
+.game-instructions {
+  max-width: 760px;
+  margin: 22px auto 26px;
+  padding: 18px 24px;
+  color: #1f1f1f;
+  background: #ffc907;
+  border: 3px solid #1f1f1f;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #1f1f1f;
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 900;
+}
+
+.stats p {
+  min-height: 74px;
+  padding: 18px 22px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.stats span {
+  font-size: 34px;
+}
+
+.achievement {
+  min-height: 68px;
+  padding: 20px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.game-layout {
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(280px, 0.65fr);
+}
+
+.court-player {
+  width: 25%;
+  max-height: 38%;
+  filter: drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
+}
+
+.player-one {
+  top: 12%;
+  left: 10%;
+}
+
+.player-two {
+  top: 12%;
+  right: 10%;
+}
+
+.player-three {
+  bottom: 7%;
+  left: 10%;
+}
+
+.player-four {
+  right: 10%;
+  bottom: 7%;
+}
+
+/* Numbers remain visible above the characters */
+
+.court-number {
+  position: absolute;
+  z-index: 4;
+  color: white;
+  font-size: clamp(42px, 7vw, 82px);
+  font-weight: 1000;
+  line-height: 1;
+  pointer-events: none;
+  -webkit-text-stroke: 3px #1f1f1f;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.28);
+}
+
+.number-one {
+  top: 4%;
+  left: 4%;
+}
+
+.number-two {
+  top: 4%;
+  right: 4%;
+}
+
+.number-three {
+  bottom: 4%;
+  left: 4%;
+}
+
+.number-four {
+  right: 4%;
+  bottom: 4%;
+}
+
+/* Larger water bottles and cola cans */
+
+.game-item {
+  width: 22%;
+}
+
+/* Main beneficiary area */
+
+.beneficiary-card {
+  padding: 24px 20px;
+  color: white;
+  background:
+    linear-gradient(
+      160deg,
+      #0878c9,
+      #2e9df7 60%,
+      #8bdaf8
+    );
+  border: 4px solid #1f1f1f;
+  border-radius: 24px;
+  box-shadow: 7px 7px 0 #ffc907;
+}
+
+.beneficiary-card h2 {
+  margin-bottom: 16px;
+  font-size: 28px;
+}
+
+.bucket-label {
+  color: white;
+}
+
+#bucket-progress {
+  width: fit-content;
+  margin: 8px auto 0;
+  padding: 10px 16px;
+  color: #1f1f1f;
+  background: #ffc907;
+  border: 2px solid #1f1f1f;
+  border-radius: 999px;
+  font-size: 18px;
+}
+
+.legend {
+  font-size: 16px;
+}
+
+#start-game,
+#reset-game {
+  min-height: 55px;
+  padding: 14px 30px;
+  font-size: 18px;
+}
+
+@media (max-width: 760px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- VISUAL FIXES ---------- */
+
+/* Bucket PNGs have a pale textured background; the SVG filter in
+   index.html makes it transparent. The clip trims stray edge pixels. */
+.bucket-image {
+  clip-path: inset(0 2% 3% 5%);
+  filter:
+    url("#remove-white")
+    drop-shadow(0 4px 3px rgba(0, 0, 0, 0.22));
+}
+
+/* CSS-only four-square court */
+.court {
+  background-color: #ffc907;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.22), transparent 70%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.05) 0 12px,
+      transparent 12px 24px
+    );
+}
+
+/* Chalk outside border */
+.court::before {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  z-index: 1;
+  border: 5px solid rgba(255, 255, 255, 0.92);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+/* Crossing chalk lines */
+.court::after {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  z-index: 1;
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, 0.92),
+      rgba(255, 255, 255, 0.92)
+    ) center / 5px 100% no-repeat,
+    linear-gradient(
+      rgba(255, 255, 255, 0.92),
+      rgba(255, 255, 255, 0.92)
+    ) center / 100% 5px no-repeat;
+  pointer-events: none;
+}
+
+/* Players: smaller and centered in their squares */
+.court-player {
+  z-index: 2;
+  width: 19%;
+  max-height: 30%;
+  right: auto;
+  bottom: auto;
+  transform-origin: 50% 100%;
+  animation: player-bounce 2.4s ease-in-out infinite;
+}
+
+.player-one {
+  top: 12%;
+  left: 15.5%;
+  animation-delay: 0s;
+}
+
+.player-two {
+  top: 12%;
+  left: 65.5%;
+  animation-name: player-sway;
+  animation-duration: 2.9s;
+  animation-delay: -0.8s;
+}
+
+.player-three {
+  top: 57%;
+  left: 15.5%;
+  animation-duration: 2.7s;
+  animation-delay: -1.5s;
+}
+
+.player-four {
+  top: 57%;
+  left: 65.5%;
+  animation-name: player-sway;
+  animation-duration: 3.2s;
+  animation-delay: -2.2s;
+}
+
+/* Numbers sit above every player and the item */
+.court-number {
+  z-index: 7;
+  font-size: clamp(34px, 6vw, 64px);
+}
+
+.number-one {
+  top: 5%;
+  left: 5%;
+}
+
+.number-two {
+  top: 5%;
+  right: 5%;
+}
+
+.number-three {
+  bottom: 5%;
+  left: 5%;
+}
+
+.number-four {
+  right: 5%;
+  bottom: 5%;
+}
+
+@keyframes player-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-5%) scale(1.03, 0.98);
+  }
+}
+
+@keyframes player-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(3deg) translateY(-3%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .court-player {
+    animation: none;
+  }
+}
+
+/* Bottle and can sprites have a near-black background; the SVG filter
+   in index.html makes it transparent. */
+.game-item {
+  filter:
+    url("#remove-black")
+    drop-shadow(0 5px 3px rgba(0, 0, 0, 0.3));
+}
+
+.direction-arrow {
+  filter: url("#remove-black");
+}
+
+/* ---------- PLAYER SELECTION AND TURN SYSTEM ---------- */
+
+.player-select {
+  max-width: 760px;
+  margin: 0 auto 20px;
+  padding: 16px 20px;
+  text-align: center;
+  background: #edf7ff;
+  border: 3px solid #1f1f1f;
+  border-radius: 18px;
+}
+
+.player-select h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.player-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.player-choice {
+  min-height: 46px;
+  padding: 10px 20px;
+  color: #1f1f1f;
+  background: #ffffff;
+  border: 2px solid #1f1f1f;
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 #1f1f1f;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.player-choice.selected {
+  color: #ffffff;
+  background: #0a8cff;
+}
+
+.player-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.player-choice:focus-visible,
+#start-game:focus-visible,
+#reset-game:focus-visible,
+.game-item:focus-visible {
+  outline: 4px solid #0a8cff;
+  outline-offset: 3px;
+}
+
+.player-select-hint {
+  margin: 12px 0 0;
+  color: #666057;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Turn message above the court */
+.turn-status {
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  text-align: center;
+  border: 3px solid #1f1f1f;
+  border-radius: 14px;
+  font-size: clamp(17px, 2.6vw, 24px);
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.turn-status.idle {
+  color: #1f1f1f;
+  background: #f3f0e7;
+}
+
+.turn-status.wait {
+  color: #ffffff;
+  background: #666057;
+}
+
+.turn-status.cola {
+  color: #ffffff;
+  background: #f5402c;
+}
+
+.turn-status.your-turn {
+  color: #ffffff;
+  background: #0a8cff;
+  animation: status-pulse 0.6s ease-in-out infinite alternate;
+}
+
+/* Four glowing court squares (inside the chalk border) */
+.court-square {
+  position: absolute;
+  z-index: 1;
+  width: 47%;
+  height: 47%;
+  pointer-events: none;
+}
+
+.square-one {
+  top: 3%;
+  left: 3%;
+}
+
+.square-two {
+  top: 3%;
+  right: 3%;
+}
+
+.square-three {
+  bottom: 3%;
+  left: 3%;
+}
+
+.square-four {
+  right: 3%;
+  bottom: 3%;
+}
+
+.court-square.active-turn {
+  background: rgba(10, 140, 255, 0.3);
+  animation: square-glow 0.7s ease-in-out infinite alternate;
+}
+
+/* Selected player: bright blue outline and YOU label */
+.court-player.selected {
+  filter:
+    drop-shadow(0 0 2px #0a8cff)
+    drop-shadow(0 0 2px #0a8cff)
+    drop-shadow(0 0 7px #0a8cff)
+    drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
+}
+
+.you-label {
+  position: absolute;
+  z-index: 6;
+  padding: 3px 12px;
+  display: none;
+  color: #ffffff;
+  background: #0a8cff;
+  border: 3px solid #1f1f1f;
+  border-radius: 999px;
+  font-size: clamp(13px, 2.2vw, 20px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.you-label.visible {
+  display: block;
+}
+
+.you-1 {
+  top: 5%;
+  left: 25%;
+}
+
+.you-2 {
+  top: 5%;
+  left: 75%;
+}
+
+.you-3 {
+  top: 50.5%;
+  left: 25%;
+}
+
+.you-4 {
+  top: 50.5%;
+  left: 75%;
+}
+
+.game-item {
+  width: 17%;
+}
+
+@keyframes square-glow {
+  from {
+    box-shadow: inset 0 0 12px 4px rgba(10, 140, 255, 0.5);
+  }
+
+  to {
+    box-shadow: inset 0 0 38px 14px rgba(10, 140, 255, 0.95);
+  }
+}
+
+@keyframes status-pulse {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-status.your-turn,
+  .court-square.active-turn {
+    animation: none;
+  }
+}
+
+/* ---------- LEVELS, PENALTY SHAKE, CELEBRATING GIRL ---------- */
+
+.stats {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.stats p:first-child {
+  color: #1f1f1f;
+  background: #ffc907;
+}
+
+@media (max-width: 480px) {
+  .stats p {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+.penalty-shake {
+  animation: penalty-shake 0.45s ease-in-out;
+}
+
+.main-girl {
+  display: block;
+  transform-origin: 50% 100%;
+}
+
+/* The art has no raised-arms pose, so she jumps and cheers in place */
+.main-girl.celebrating {
+  animation: girl-cheer 0.7s ease-in-out infinite;
+}
+
+.celebration-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: none;
+  pointer-events: none;
+  font-size: 30px;
+}
+
+.celebration-sparkles.visible {
+  display: block;
+}
+
+.celebration-sparkles span {
+  position: absolute;
+  animation: sparkle-pop 0.9s ease-in-out infinite;
+}
+
+.celebration-sparkles span:nth-child(1) {
+  top: 2%;
+  left: 4%;
+}
+
+.celebration-sparkles span:nth-child(2) {
+  top: 10%;
+  right: 4%;
+  animation-delay: -0.3s;
+}
+
+.celebration-sparkles span:nth-child(3) {
+  top: 34%;
+  right: 0;
+  animation-delay: -0.6s;
+}
+
+.celebration-sparkles span:nth-child(4) {
+  top: 36%;
+  left: 0;
+  animation-delay: -0.15s;
+}
+
+@keyframes girl-cheer {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0) scale(1, 1);
+  }
+
+  20% {
+    transform: translateY(0) rotate(0) scale(1.04, 0.94);
+  }
+
+  50% {
+    transform: translateY(-9%) rotate(-4deg) scale(1.02, 1.04);
+  }
+
+  75% {
+    transform: translateY(-4%) rotate(4deg) scale(1, 1);
+  }
+}
+
+@keyframes sparkle-pop {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0) scale(0.7);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-12px) scale(1.2);
+  }
+}
+
+@keyframes penalty-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-girl.celebrating,
+  .celebration-sparkles span,
+  .penalty-shake {
+    animation: none;
+  }
+}
+
+/* ---------- LARGER INSTRUCTIONS AND MISSION MESSAGE ---------- */
+
+.game-instructions {
+  max-width: 900px;
+  padding: 22px 28px;
+  font-size: clamp(20px, 3vw, 30px);
+  line-height: 1.4;
+}
+
+.player-select h2 {
+  font-size: clamp(24px, 3.2vw, 32px);
+}
+
+.player-select-hint {
+  font-size: clamp(16px, 2vw, 20px);
+}
+
+.court-hint {
+  margin-top: 14px;
+  color: #1f1f1f;
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.legend {
+  font-size: clamp(16px, 2.2vw, 20px);
+}
+
+.mission-message {
+  max-width: 900px;
+  margin: 34px auto 0;
+  padding: 24px 28px;
+  color: #1f1f1f;
+  background: #fff4b5;
+  border: 3px solid #1f1f1f;
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 #0a8cff;
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.mission-message a {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: clamp(18px, 2.6vw, 26px);
+}
+
+/* ---------- "CHOOSE A PLAYER" GLOW HINT ---------- */
+
+/* Until a player is chosen, players 1-4 glow in order (1s each),
+   along with their number and square. */
+.court.choose-mode .player-one {
+  animation:
+    player-bounce 2.4s ease-in-out infinite 0s,
+    pick-glow 4s ease-in-out infinite 0s;
+}
+
+.court.choose-mode .player-two {
+  animation:
+    player-sway 2.9s ease-in-out infinite -0.8s,
+    pick-glow 4s ease-in-out infinite 1s;
+}
+
+.court.choose-mode .player-three {
+  animation:
+    player-bounce 2.7s ease-in-out infinite -1.5s,
+    pick-glow 4s ease-in-out infinite 2s;
+}
+
+.court.choose-mode .player-four {
+  animation:
+    player-sway 3.2s ease-in-out infinite -2.2s,
+    pick-glow 4s ease-in-out infinite 3s;
+}
+
+.court.choose-mode .number-one {
+  animation: pick-number 4s ease-in-out infinite 0s;
+}
+
+.court.choose-mode .number-two {
+  animation: pick-number 4s ease-in-out infinite 1s;
+}
+
+.court.choose-mode .number-three {
+  animation: pick-number 4s ease-in-out infinite 2s;
+}
+
+.court.choose-mode .number-four {
+  animation: pick-number 4s ease-in-out infinite 3s;
+}
+
+.court.choose-mode .square-one {
+  animation: pick-square 4s ease-in-out infinite 0s;
+}
+
+.court.choose-mode .square-two {
+  animation: pick-square 4s ease-in-out infinite 1s;
+}
+
+.court.choose-mode .square-three {
+  animation: pick-square 4s ease-in-out infinite 2s;
+}
+
+.court.choose-mode .square-four {
+  animation: pick-square 4s ease-in-out infinite 3s;
+}
+
+@keyframes pick-glow {
+  0%,
+  30%,
+  100% {
+    filter:
+      drop-shadow(0 0 0 rgba(255, 255, 255, 0))
+      drop-shadow(0 0 0 rgba(10, 140, 255, 0))
+      drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
+  }
+
+  12% {
+    filter:
+      drop-shadow(0 0 10px rgba(255, 255, 255, 1))
+      drop-shadow(0 0 16px rgba(10, 140, 255, 1))
+      drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
+  }
+}
+
+@keyframes pick-number {
+  0%,
+  30%,
+  100% {
+    color: #ffffff;
+    transform: scale(1);
+  }
+
+  12% {
+    color: #ffc907;
+    transform: scale(1.3);
+    text-shadow:
+      0 0 14px #ffffff,
+      0 0 24px #0a8cff,
+      4px 4px 0 rgba(0, 0, 0, 0.28);
+  }
+}
+
+@keyframes pick-square {
+  0%,
+  30%,
+  100% {
+    background: rgba(10, 140, 255, 0);
+    box-shadow: inset 0 0 0 0 rgba(10, 140, 255, 0);
+  }
+
+  12% {
+    background: rgba(255, 255, 255, 0.22);
+    box-shadow: inset 0 0 30px 8px rgba(10, 140, 255, 0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .court.choose-mode .court-number,
+  .court.choose-mode .court-square {
+    animation: none;
+  }
 }
