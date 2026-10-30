@@ -256,78 +256,6 @@ The code displays only one-third of it at a time.
   margin: 0 0 12px;
 }
 
-.girl-bucket-scene {
-  position: relative;
-  width: min(220px, 100%);
-  min-height: 285px;
-  margin: 0 auto;
-}
-
-.main-girl {
-  width: 100%;
-  max-height: 285px;
-  object-fit: contain;
-}
-
-.main-girl.concealed {
-  display: none;
-}
-
-.shoulder-animation {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  background-image: url("img/MAIN-GIRL-SIDEKICK-SHOULDER.png");
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: 400% 300%;
-  pointer-events: none;
-}
-
-.shoulder-animation[hidden],
-.water-drop-sidekick[hidden] {
-  display: none;
-}
-
-.water-drop-sidekick {
-  position: absolute;
-  top: 24%;
-  left: 49%;
-  z-index: 5;
-  width: clamp(42px, 23%, 62px);
-  aspect-ratio: 1;
-  background-image: url("img/WATER-DROP-SIDEKICK.png");
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: 400% 300%;
-  transform: translate3d(0, 0, 0);
-  transition: transform 650ms cubic-bezier(0.2, 0.75, 0.3, 1);
-  pointer-events: none;
-}
-
-.bucket-celebration-sprite {
-  position: absolute;
-  right: -4%;
-  bottom: 0;
-  z-index: 6;
-  width: min(78%, 190px);
-  aspect-ratio: 1;
-  background-image: url("img/WATER-DROP-BUCKET-CELEBRATION.png");
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: 400% 300%;
-  pointer-events: none;
-}
-
-.bucket-celebration-sprite[hidden] {
-  display: none;
-}
-
-.girl-bucket-scene.bucket-celebrating .bucket-image,
-.girl-bucket-scene.bucket-celebrating .bucket-water {
-  visibility: hidden;
-}
-
 /* Places the changing bucket with the main girl */
 .bucket-image {
   position: absolute;
@@ -338,20 +266,6 @@ The code displays only one-third of it at a time.
   height: 42%;
   object-fit: contain;
   filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.22));
-}
-
-.bucket-label {
-  margin: 12px 0 6px;
-  color: var(--gray);
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-#bucket-progress {
-  display: block;
-  color: var(--dark-blue);
 }
 
 /* Score guide */
@@ -657,21 +571,6 @@ h1 {
   font-size: 28px;
 }
 
-.bucket-label {
-  color: white;
-}
-
-#bucket-progress {
-  width: fit-content;
-  margin: 8px auto 0;
-  padding: 10px 16px;
-  color: #1f1f1f;
-  background: #ffc907;
-  border: 2px solid #1f1f1f;
-  border-radius: 999px;
-  font-size: 18px;
-}
-
 .legend {
   font-size: 16px;
 }
@@ -691,13 +590,9 @@ h1 {
 
 /* ---------- VISUAL FIXES ---------- */
 
-/* Bucket PNGs have a pale textured background; the SVG filter in
-   index.html makes it transparent. The clip trims stray edge pixels. */
+/* Use the active bucket PNGs at their natural proportions. */
 .bucket-image {
-  clip-path: inset(0 2% 3% 5%);
-  filter:
-    url("#remove-white")
-    drop-shadow(0 4px 3px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.22));
 }
 
 /* CSS-only four-square court */
@@ -1012,16 +907,6 @@ h1 {
   animation: penalty-shake 0.45s ease-in-out;
 }
 
-.main-girl {
-  display: block;
-  transform-origin: 50% 100%;
-}
-
-/* The art has no raised-arms pose, so she jumps and cheers in place */
-.main-girl.celebrating {
-  animation: girl-cheer 0.7s ease-in-out infinite;
-}
-
 .celebration-sparkles {
   position: absolute;
   inset: 0;
@@ -1063,25 +948,6 @@ h1 {
   animation-delay: -0.15s;
 }
 
-@keyframes girl-cheer {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0) scale(1, 1);
-  }
-
-  20% {
-    transform: translateY(0) rotate(0) scale(1.04, 0.94);
-  }
-
-  50% {
-    transform: translateY(-9%) rotate(-4deg) scale(1.02, 1.04);
-  }
-
-  75% {
-    transform: translateY(-4%) rotate(4deg) scale(1, 1);
-  }
-}
-
 @keyframes sparkle-pop {
   0%,
   100% {
@@ -1113,7 +979,6 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .main-girl.celebrating,
   .celebration-sparkles span,
   .penalty-shake {
     animation: none;
@@ -1285,16 +1150,6 @@ body {
   border: 2px solid #1f1f1f;
 }
 
-.bucket-label {
-  font-size: clamp(18px, 2.2vw, 22px);
-  letter-spacing: 1.5px;
-}
-
-#bucket-progress {
-  padding: 12px 22px;
-  font-size: clamp(22px, 2.8vw, 30px);
-}
-
 .beneficiary-card h2 {
   font-size: clamp(28px, 3.2vw, 36px);
 }
@@ -1310,20 +1165,20 @@ body {
   box-shadow: 5px 5px 0 #ffc907;
 }
 
-.court-section > .controls {
+.beneficiary-card > .controls {
   margin: 0 0 12px;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
-.court-section > .controls #start-game,
-.court-section > .controls #reset-game {
+.beneficiary-card > .controls #start-game,
+.beneficiary-card > .controls #reset-game {
   min-height: 54px;
   padding: 12px 24px;
   font-size: 18px;
 }
 
-.court-section > .controls #start-game:disabled {
+.beneficiary-card > .controls #start-game:disabled {
   color: #1f1f1f;
 }
 
@@ -1369,30 +1224,6 @@ body {
   font-size: 1.1em;
 }
 
-/* Water that rises inside the bucket with every bottle */
-.bucket-water {
-  position: absolute;
-  right: 3%;
-  bottom: 0;
-  z-index: 4;
-  width: 53%;
-  height: 42%;
-  pointer-events: none;
-  clip-path: polygon(13% 24%, 87% 24%, 78% 90%, 24% 90%);
-}
-
-.bucket-water-level {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 0;
-  background: linear-gradient(180deg, rgba(120, 215, 255, 0.85), rgba(8, 120, 201, 0.85));
-  border-top: 3px solid rgba(255, 255, 255, 0.8);
-  transition: height 0.45s ease-out;
-}
-
-
 /* Clean and dirty water are single transparent images (not 3-up sheets) */
 .game-item.water-item,
 .game-item.cola-item {
@@ -1409,16 +1240,16 @@ body {
   aspect-ratio: 0.9;
 }
 
-/* Keep Start and Reset prominent above the court on small screens */
+/* Keep Start and Reset prominent above the beneficiary card on small screens */
 @media (max-width: 480px) {
-  .court-section > .controls {
+  .beneficiary-card > .controls {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
-  .court-section > .controls #start-game,
-  .court-section > .controls #reset-game {
+  .beneficiary-card > .controls #start-game,
+  .beneficiary-card > .controls #reset-game {
     width: 100%;
     min-height: 56px;
     padding: 10px 8px;
@@ -1484,47 +1315,52 @@ body {
 }
 
 .stats {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .truck-pickup {
   min-width: 0;
-  padding: 14px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 10px;
+  padding: 8px 16px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   color: var(--black);
   background: #fff8d6;
-  border: 3px solid var(--black);
-  border-radius: 18px;
-  box-shadow: 5px 5px 0 var(--black);
+  border: 2px solid var(--black);
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 var(--black);
   font-weight: 900;
 }
 
-.truck-pickup-label {
-  font-size: clamp(13px, 1.6vw, 18px);
+.truck-pickup-copy {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
 }
 
-.truck-pickup-countdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.truck-pickup-label {
+  font-size: clamp(14px, 1.6vw, 18px);
 }
 
 .truck-countdown {
-  font-size: clamp(18px, 2.4vw, 26px);
+  font-size: clamp(18px, 2.2vw, 24px);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .truck-icon {
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
-  background-image: url("img/TRUCK-SPRITE.png");
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  background-image: url("img/countdown-clock-truck-sprite.png");
   background-repeat: no-repeat;
-  background-position: 0 0;
+  background-position: 0% 0%;
   background-size: 400% 300%;
 }
 
@@ -1542,31 +1378,26 @@ body {
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .truck-pickup {
-    grid-column: 1 / -1;
-    min-height: 74px;
-    padding: 10px 12px;
-  }
 }
 
 @media (max-width: 400px) {
   .truck-pickup {
-    padding: 8px;
-  }
-
-  .truck-pickup-countdown {
-    gap: 4px;
+    gap: 8px;
+    padding: 6px 10px;
   }
 
   .truck-icon {
-    flex-basis: 32px;
-    width: 32px;
-    height: 32px;
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .truck-pickup-copy {
+    gap: 2px 6px;
   }
 
   .truck-countdown {
-    font-size: 17px;
+    font-size: 18px;
   }
 }
 
@@ -1580,57 +1411,312 @@ body {
   }
 }
 
-  .court-player.player-one,
-  .court-player.player-two,
-  .court-player.player-three,
-  .court-player.player-four {
-    width: 20%;
-    height: 20%;
-    max-height: none;
-    padding: 0;
-    overflow: hidden;
-    appearance: none;
-    border: 0;
-    background-color: transparent;
-    background-repeat: no-repeat;
-    background-position: 0% 0%;
-    background-size: 400% 300%;
-    transform: translate(-50%, -100%);
-    scale: 1;
-  }
+.court-player.player-one,
+.court-player.player-two,
+.court-player.player-three,
+.court-player.player-four {
+  width: 20%;
+  height: 20%;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  appearance: none;
+  border: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 400% 300%;
+  transform: translate(-50%, -100%);
+  scale: 1;
+}
 
-  .court-player.player-one {
-    top: 48%;
-    left: 25%;
-  }
+.court-player.player-one {
+  top: 48%;
+  left: 25%;
+}
 
-  .court-player.player-two {
-    top: 48%;
-    left: 75%;
-  }
+.court-player.player-two {
+  top: 48%;
+  left: 75%;
+}
 
-  .court-player.player-three {
-    top: 96%;
-    left: 25%;
-  }
+.court-player.player-three {
+  top: 96%;
+  left: 25%;
+}
 
-  .court-player.player-four {
-    top: 96%;
-    left: 75%;
-  }
+.court-player.player-four {
+  top: 96%;
+  left: 75%;
+}
 
+.court:not(.game-running) .court-player:not(.is-animating) {
+  animation: player-breathe 3s ease-in-out infinite;
+}
+
+@keyframes player-breathe {
+  50% {
+    scale: 1.012;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .court:not(.game-running) .court-player:not(.is-animating) {
-    animation: player-breathe 3s ease-in-out infinite;
+    animation: none;
+  }
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  min-width: 0;
+  overflow-x: clip;
+  padding: 16px clamp(8px, 2vw, 24px);
+}
+
+.container {
+  width: min(1280px, 100%);
+  margin: 16px auto;
+  padding: clamp(16px, 3vw, 36px);
+}
+
+.game-layout {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: clamp(16px, 2.5vw, 32px);
+}
+
+.court-section {
+  min-width: 0;
+  width: 100%;
+}
+
+.court {
+  width: 100%;
+}
+
+.beneficiary-card {
+  width: 100%;
+  min-width: 0;
+  height: fit-content;
+  align-self: center;
+  padding: clamp(14px, 2vw, 22px);
+}
+
+.beneficiary-display {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 0.55fr);
+  align-items: center;
+  gap: clamp(6px, 1.2vw, 14px);
+  min-width: 0;
+}
+
+.girl-bucket-scene {
+  width: min(220px, 100%);
+  min-height: 270px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.girl-scene-stage {
+  position: relative;
+  width: min(220px, 100%);
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.girl-scene-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 850ms ease-in-out;
+  pointer-events: none;
+}
+
+.girl-scene-layer.active {
+  opacity: 1;
+}
+
+.main-girl-sprite,
+.shoulder-girl-sprite {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 400% 300%;
+}
+
+.main-girl-sprite {
+  background-image: url("img/MAIN-GIRL-SPRITE.png");
+}
+
+.shoulder-girl-sprite {
+  background-image: url("img/MAIN-GIRL-SHOULDER-SPRITE.png");
+}
+
+.game-art-loading {
+  margin: 0 0 12px;
+  color: var(--dark-blue);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.game-art-loading[hidden] {
+  display: none;
+}
+
+.celebration-sparkles {
+  z-index: 4;
+}
+
+.bucket-image {
+  z-index: 3;
+  width: clamp(58px, 30%, 78px);
+  height: auto;
+  max-height: 30%;
+}
+
+.bucket-image {
+  right: 2%;
+  bottom: 1%;
+  width: clamp(58px, 30%, 78px);
+  height: auto;
+  max-height: 30%;
+  object-fit: contain;
+  clip-path: none;
+  filter:
+    url("#remove-white")
+    drop-shadow(0 3px 2px rgba(0, 0, 0, 0.22));
+}
+
+.completed-buckets-panel {
+  min-width: 0;
+  padding: 8px;
+  color: var(--black);
+  background: rgba(255, 255, 255, 0.74);
+  border: 2px solid rgba(31, 31, 31, 0.25);
+  border-radius: 14px;
+}
+
+.completed-buckets-panel h3 {
+  margin: 0 0 8px;
+  color: var(--dark-blue);
+  font-size: clamp(13px, 1.5vw, 17px);
+  text-align: center;
+}
+
+.completed-buckets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  justify-items: center;
+  gap: 5px;
+}
+
+.completed-bucket {
+  display: block;
+  width: 100%;
+  max-width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter:
+    url("#remove-white")
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.18));
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.completed-bucket.bucket-celebrating {
+  filter:
+    url("#remove-white")
+    drop-shadow(0 0 7px var(--yellow));
+  transform: scale(1.12);
+}
+
+.completed-buckets-panel {
+  position: relative;
+}
+
+.water-drop-bucket-sprite {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  width: 48px;
+  height: 48px;
+  background-image: url("img/WATER-DROP-BUCKET-SPRITE.png");
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: 400% 300%;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 850ms ease-in-out;
+  pointer-events: none;
+}
+
+.water-drop-bucket-sprite.active {
+  opacity: 1;
+}
+
+.bucket-progress {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+}
+
+.bucket-label {
+  margin: 0;
+  color: var(--white);
+  font-size: clamp(13px, 1.6vw, 16px);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.bucket-label strong {
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 10px;
   }
 
-  @keyframes player-breathe {
-    50% {
-      scale: 1.012;
-    }
+  .container {
+    margin: 8px auto;
+    padding: clamp(14px, 4vw, 22px);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .court:not(.game-running) .court-player:not(.is-animating) {
-      animation: none;
-    }
+  .game-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
+
+  .beneficiary-card {
+    width: 100%;
+  }
+
+  .beneficiary-display {
+    grid-template-columns: minmax(0, 1fr) minmax(82px, 0.45fr);
+  }
+
+  .completed-buckets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .completed-bucket {
+    max-width: 34px;
+    height: 34px;
+  }
+}

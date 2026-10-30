@@ -77,16 +77,9 @@
 
       <p>
         Time
-        <span id="timer">45</span>s
+        <span id="timer">60</span>s
       </p>
 
-      <div id="truck-pickup" class="truck-pickup">
-        <span class="truck-pickup-label">Truck Pickup</span>
-        <div class="truck-pickup-countdown">
-          <span id="truck-icon" class="truck-icon" aria-hidden="true"></span>
-          <time id="truck-countdown" class="truck-countdown">--:--:--</time>
-        </div>
-      </div>
     </section>
 
     <div
@@ -98,16 +91,6 @@
 
     <section class="game-layout">
       <div class="court-section">
-        <div class="controls">
-          <button id="start-game" type="button" disabled>
-            Start Game
-          </button>
-
-          <button id="reset-game" type="button">
-            Reset
-          </button>
-        </div>
-
         <div
           id="turn-status"
           class="turn-status idle"
@@ -172,53 +155,77 @@
         </p>
       </div>
 
-      <!-- Main girl and changing bucket -->
+      <!-- Main girl, active bucket, and completed buckets -->
       <aside class="beneficiary-card">
-        <h2>Deliver the Water</h2>
-
-        <div class="girl-bucket-scene">
-          <img class="main-girl"
-               src="img/MAIN GIRL ANIMATED.png"
-               alt="Girl waiting for clean water">
-
-          <div
-            id="shoulder-animation"
-            class="shoulder-animation"
-            aria-hidden="true"
-            hidden
-          ></div>
-
-          <div
-            id="water-drop-sidekick"
-            class="water-drop-sidekick"
-            aria-hidden="true"
-          ></div>
-
-          <div
-            id="bucket-celebration-sprite"
-            class="bucket-celebration-sprite"
-            aria-hidden="true"
-            hidden
-          ></div>
-
-          <div id="celebration-sparkles" class="celebration-sparkles" aria-hidden="true">
-            <span>🎉</span><span>✨</span><span>🎉</span><span>✨</span>
+        <div id="truck-pickup" class="truck-pickup">
+          <span id="truck-icon" class="truck-icon" aria-hidden="true"></span>
+          <div class="truck-pickup-copy">
+            <span class="truck-pickup-label">Truck arrives in:</span>
+            <time id="truck-countdown" class="truck-countdown">--:--:--</time>
           </div>
-
-          <div class="bucket-water" aria-hidden="true">
-            <div id="bucket-water-level" class="bucket-water-level"></div>
-          </div>
-
-          <img
-            id="bucket-image"
-            class="bucket-image"
-            src="img/EMPTY BUCKET.png"
-            alt="Empty water bucket"
-          >
         </div>
 
-        <p class="bucket-label">Bucket Progress</p>
-        <strong id="bucket-progress">0 / 8 bottles</strong>
+        <div class="controls">
+          <button id="start-game" type="button" disabled>
+            Start Game
+          </button>
+          <button id="reset-game" type="button">
+            Reset
+          </button>
+        </div>
+
+        <h2>Deliver the Water</h2>
+        <p id="game-art-loading" class="game-art-loading" role="status">
+          Loading game art…
+        </p>
+
+        <div id="beneficiary-display" class="beneficiary-display">
+          <div class="girl-bucket-scene">
+            <div class="girl-scene-stage" role="img" aria-label="Girl delivering clean water">
+              <div id="girl-main-scene" class="girl-scene-layer active">
+                <div id="main-girl-sprite" class="main-girl-sprite"></div>
+              </div>
+              <div id="girl-shoulder-scene" class="girl-scene-layer">
+                <div id="shoulder-girl-sprite" class="shoulder-girl-sprite"></div>
+              </div>
+              <div id="celebration-sparkles" class="celebration-sparkles" aria-hidden="true">
+                <span>🎉</span><span>✨</span><span>🎉</span><span>✨</span>
+              </div>
+              <img
+                id="bucket-image"
+                class="bucket-image"
+                src="img/EMPTY BUCKET.png"
+                alt="Empty active water bucket"
+              >
+            </div>
+          </div>
+
+          <section class="completed-buckets-panel" aria-label="Completed buckets">
+            <h3>Completed</h3>
+            <div
+              id="completed-buckets"
+              class="completed-buckets"
+              aria-live="polite"
+            ></div>
+            <div
+              id="water-drop-bucket-sprite"
+              class="water-drop-bucket-sprite"
+              aria-hidden="true"
+            ></div>
+          </div>
+
+        </div>
+
+        <div class="bucket-progress">
+          <p class="bucket-label">
+            Buckets Filled:
+            <strong><span id="completed-buckets-count">0</span> / <span id="bucket-goal">8</span></strong>
+          </p>
+          <p class="bucket-label current-bucket-label">
+            Current Bucket:
+            <strong><span id="current-bucket-progress">0</span> / 3</strong>
+          </p>
+        </div>
       </aside>
     </section>
 

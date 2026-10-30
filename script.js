@@ -1,27 +1,37 @@
 // Game settings
-const GAME_TIME = 45;
-const TIME_STEP = 5;
-const MIN_GAME_TIME = 40;
+const LEVEL_SETTINGS = [
+  { buckets: 8, seconds: 60 },
+  { buckets: 12, seconds: 75 },
+  { buckets: 16, seconds: 90 },
+  { buckets: 20, seconds: 105 }
+];
+const CATCHES_PER_BUCKET = 3;
 const COLA_CHANCE = 0.15;
 const COLA_PENALTY = 2;
 
-// Each level is a little faster and asks for a little more
-const BASE_GOAL = 8;
-const GOAL_EVERY = 2; // goal grows by 1 every 2 levels
-const MAX_GOAL = 16;
 const BASE_SPAWN_SPEED = 1500;
 const SPEED_STEP = 100;
 const MIN_SPAWN_SPEED = 800;
 const PLAYER_FRAME_DURATIONS = [180, 130, 130, 220];
 const PLAYER_FRAME_POSITIONS = ["0%", "33.333%", "66.667%", "100%"];
+const SCENE_ART_ASSETS = [
+  "img/MAIN-GIRL-SPRITE.png",
+  "img/MAIN-GIRL-SHOULDER-SPRITE.png",
+  "img/WATER-DROP-BUCKET-SPRITE.png"
+];
+const SCENE_FRAME_INTERVAL = 150;
+const SCENE_ROTATION_INTERVAL = 20000;
 
 // Game state
 let level = 1;
 let levelCleared = false;
 let score = 0;
-let timeLeft = GAME_TIME;
+let timeLeft = LEVEL_SETTINGS[0].seconds;
 let gameActive = false;
 let selectedPlayer = null;
+let currentBucketCatches = 0;
+let completedBuckets = 0;
+let renderedCompletedBuckets = -1;
 let activeItems = [];
 const itemPool = [];
 let turnCount = 0;
@@ -29,14 +39,13 @@ let spawnTimeout;
 let timerInterval;
 let playerAnimationTimeout;
 let animatedPlayer = null;
-let completedBuckets = 0;
-let shoulderAnimationTimeout;
-let shoulderIdleTimeout;
-let shoulderAnimationId = 0;
-let bucketCelebrationTimeout;
-let bucketCelebrationAnimationId = 0;
 let bucketSidekickAnimating = false;
-let shoulderAnimationRunning = false;
+let gameArtLoaded = false;
+let sceneRotationInterval;
+let sceneFrameInterval;
+let currentScene = 0;
+let currentSceneFrame = 0;
+let sceneAnimationMode = "idle";
 
 // Random winning messages
 const winningMessages = [
@@ -52,43 +61,43 @@ const losingMessages = [
   "Almost there! Reset the game and fill the bucket."
 ];
 
-// Bucket stages
+// Empty, 1/3-full, and 2/3-full active bucket images.
 const bucketImages = [
   "img/EMPTY BUCKET.png",
   "img/1/A BIT FULL BUCKET.png",
-  "img/1/HALF FULL BUCKET.png",
-  "img/3/ALMOST FULL BUCKET.png",
-  "img/FULL BUCKET.png"
+  "img/3/ALMOST FULL BUCKET.png"
 ];
 
 const bucketNames = [
   "Empty water bucket",
-  "Quarter-full water bucket",
-  "Half-full water bucket",
-  "Three-quarter-full water bucket",
-  "Full water bucket"
+  "Water bucket one-third full",
+  "Water bucket two-thirds full"
 ];
 
 // Find the HTML elements
 const levelDisplay = document.getElementById("level");
-const mainGirl = document.querySelector(".main-girl");
+const mainGirl = document.getElementById("main-girl-sprite");
 const celebrationSparkles = document.getElementById("celebration-sparkles");
 const scoreDisplay = document.getElementById("current-cans");
 const timerDisplay = document.getElementById("timer");
 const achievementDisplay = document.getElementById("achievements");
 const turnStatus = document.getElementById("turn-status");
-const bucketWaterLevel = document.getElementById("bucket-water-level");
 const gameItem = document.getElementById("game-item");
 itemPool.push(gameItem);
 const arrow = document.getElementById("direction-arrow");
 const startButton = document.getElementById("start-game");
 const resetButton = document.getElementById("reset-game");
 const bucketImage = document.getElementById("bucket-image");
-const bucketProgress = document.getElementById("bucket-progress");
-const shoulderAnimation = document.getElementById("shoulder-animation");
-const sidekick = document.getElementById("water-drop-sidekick");
-const bucketCelebrationSprite = document.getElementById("bucket-celebration-sprite");
-const girlBucketScene = document.querySelector(".girl-bucket-scene");
+const completedBucketsDisplay = document.getElementById("completed-buckets-count");
+const bucketGoalDisplay = document.getElementById("bucket-goal");
+const currentBucketDisplay = document.getElementById("current-bucket-progress");
+const completedBucketsContainer = document.getElementById("completed-buckets");
+const beneficiaryDisplay = document.getElementById("beneficiary-display");
+const shoulderGirlSprite = document.getElementById("shoulder-girl-sprite");
+const mainGirlScene = document.getElementById("girl-main-scene");
+const shoulderGirlScene = document.getElementById("girl-shoulder-scene");
+const waterDropBucketSprite = document.getElementById("water-drop-bucket-sprite");
+const gameArtLoading = document.getElementById("game-art-loading");
 const confettiContainer = document.getElementById("confetti");
 const youLabel = document.getElementById("you-label");
 const courtPlayers = document.querySelectorAll(".court-player");
@@ -110,12 +119,15 @@ const arrowClasses = [
 ];
 
 function getGoal() {
-  return Math.min(MAX_GOAL, BASE_GOAL + Math.floor((level - 1) / GOAL_EVERY));
+  return getLevelSettings().buckets;
 }
 
-// Each level gives less time
 function getGameTime() {
-  return Math.max(MIN_GAME_TIME, GAME_TIME - (level - 1) * TIME_STEP);
+  return getLevelSettings().seconds;
+}
+
+function getLevelSettings() {
+  return LEVEL_SETTINGS[Math.min(level - 1, LEVEL_SETTINGS.length - 1)];
 }
 
 function getSpawnSpeed() {
@@ -127,162 +139,209 @@ function getClickPause() {
   return Math.round(getSpawnSpeed() * 0.45);
 }
 
-function showShoulderScene() {
-  shoulderAnimation.hidden = true;
-  shoulderAnimation.style.backgroundPosition = "0 0";
-  mainGirl.classList.remove("concealed");
-  sidekick.hidden = false;
-  sidekick.classList.remove("behind-bucket", "in-front-of-bucket", "big-celebration");
-  sidekick.style.transition = "";
-  sidekick.style.backgroundPosition = "0 0";
-  sidekick.style.transform = "translate3d(0, 0, 0)";
+function setSpriteFrame(sprite, frame) {
+  const column = frame % 4;
+  const row = Math.floor(frame / 4);
+  sprite.style.backgroundPosition =
+    (column * 100 / 3) + "% " + (row * 50) + "%";
 }
 
-function stopShoulderAnimation() {
-  shoulderAnimationId += 1;
-  clearTimeout(shoulderAnimationTimeout);
-  shoulderAnimationRunning = false;
-  showShoulderScene();
+function setScene(sceneIndex) {
+  currentScene = sceneIndex;
+  mainGirlScene.classList.toggle("active", sceneIndex !== 1);
+  shoulderGirlScene.classList.toggle("active", sceneIndex === 1);
+  waterDropBucketSprite.classList.toggle("active", sceneIndex === 2);
+  if (sceneIndex === 2 && !bucketSidekickAnimating) {
+    positionWaterDropAtGirl(false);
+  }
 }
 
-function playShoulderAnimation(onComplete) {
-  if (bucketSidekickAnimating || shoulderAnimationRunning) {
+function positionWaterDropAtGirl(animate) {
+  const parentRect = completedBucketsContainer.parentElement.getBoundingClientRect();
+  const girlRect = document.querySelector(".girl-scene-stage").getBoundingClientRect();
+  const x = girlRect.left - parentRect.left + girlRect.width * 0.66 - 24;
+  const y = girlRect.top - parentRect.top + girlRect.height * 0.18 - 24;
+  waterDropBucketSprite.style.transition = animate
+    ? "transform 650ms cubic-bezier(0.2, 0.75, 0.3, 1)"
+    : "none";
+  waterDropBucketSprite.style.transform = "translate3d(" + x + "px, " + y + "px, 0)";
+}
+
+function moveWaterDropToBucket(bucket) {
+  waterDropBucketSprite.style.transition =
+    "transform 650ms cubic-bezier(0.2, 0.75, 0.3, 1)";
+  requestAnimationFrame(function () {
+    const parentRect = completedBucketsContainer.parentElement.getBoundingClientRect();
+    const bucketRect = bucket.getBoundingClientRect();
+    const x = bucketRect.left - parentRect.left + bucketRect.width / 2 - 24;
+    const y = bucketRect.top - parentRect.top + bucketRect.height / 2 - 24;
+    waterDropBucketSprite.style.transform =
+      "translate3d(" + x + "px, " + y + "px, 0)";
+  });
+}
+
+function getActiveGirlSprite() {
+  return currentScene === 1 ? shoulderGirlSprite : mainGirl;
+}
+
+function tickSceneSprites() {
+  if (sceneAnimationMode === "encouraging") {
+    setSpriteFrame(getActiveGirlSprite(), 4 + currentSceneFrame);
+    currentSceneFrame += 1;
+    if (currentSceneFrame >= 4) {
+      sceneAnimationMode = "idle";
+      currentSceneFrame = 0;
+    }
     return;
   }
 
-  stopShoulderAnimation();
-  const animationId = ++shoulderAnimationId;
-  let frame = 0;
-  shoulderAnimationRunning = true;
-
-  shoulderAnimation.hidden = false;
-  mainGirl.classList.add("concealed");
-  sidekick.hidden = true;
-
-  function showNextFrame() {
-    if (animationId !== shoulderAnimationId) {
-      return;
+  if (sceneAnimationMode === "celebrating") {
+    setSpriteFrame(mainGirl, 8 + Math.min(currentSceneFrame, 3));
+    setSpriteFrame(waterDropBucketSprite, currentSceneFrame % 12);
+    currentSceneFrame += 1;
+    if (currentSceneFrame >= 12) {
+      sceneAnimationMode = "idle";
+      currentSceneFrame = 0;
+      completedBucketsContainer
+        .querySelectorAll(".bucket-celebrating")
+        .forEach(function (bucket) {
+          bucket.classList.remove("bucket-celebrating");
+        });
+      if (bucketSidekickAnimating) {
+        positionWaterDropAtGirl(true);
+        bucketSidekickAnimating = false;
+      }
     }
-
-    const column = frame % 4;
-    const row = Math.floor(frame / 4);
-    shoulderAnimation.style.backgroundPosition =
-      (column / 3) * 100 + "% " + (row / 2) * 100 + "%";
-
-    if (frame === 11) {
-      shoulderAnimationTimeout = setTimeout(function () {
-        if (animationId !== shoulderAnimationId) {
-          return;
-        }
-
-        shoulderAnimationRunning = false;
-        showShoulderScene();
-        if (onComplete) {
-          onComplete();
-        }
-      }, 180);
-      return;
-    }
-
-    frame += 1;
-    shoulderAnimationTimeout = setTimeout(showNextFrame, 180);
-  }
-
-  showNextFrame();
-}
-
-function scheduleShoulderIdleAnimation() {
-  clearTimeout(shoulderIdleTimeout);
-
-  if (!gameActive) {
     return;
   }
 
-  shoulderIdleTimeout = setTimeout(function () {
-    if (!gameActive) {
-      return;
-    }
+  setSpriteFrame(mainGirl, currentSceneFrame);
+  setSpriteFrame(shoulderGirlSprite, currentSceneFrame);
+  setSpriteFrame(waterDropBucketSprite, currentSceneFrame);
+  currentSceneFrame = (currentSceneFrame + 1) % 12;
+}
 
-    if (bucketSidekickAnimating) {
-      scheduleShoulderIdleAnimation();
-      return;
-    }
+function playGirlEncouragement() {
+  if (sceneAnimationMode === "celebrating") {
+    return;
+  }
 
-    playShoulderAnimation(scheduleShoulderIdleAnimation);
-  }, 15000);
+  sceneAnimationMode = "encouraging";
+  currentSceneFrame = 0;
+  setSpriteFrame(getActiveGirlSprite(), 4);
 }
 
 function playBucketCelebration(bucketNumber) {
-  clearTimeout(shoulderIdleTimeout);
-  stopShoulderAnimation();
-  clearTimeout(bucketCelebrationTimeout);
-
-  bucketSidekickAnimating = true;
-  const animationId = ++bucketCelebrationAnimationId;
-  const row = bucketNumber <= 2 ? 0 : bucketNumber <= 4 ? 1 : 2;
-  let frame = 0;
-
-  shoulderAnimation.hidden = true;
-  mainGirl.classList.remove("concealed");
-  sidekick.hidden = true;
-  girlBucketScene.classList.add("bucket-celebrating");
-  bucketCelebrationSprite.hidden = false;
-
-  function showNextFrame() {
-    if (animationId !== bucketCelebrationAnimationId) {
-      return;
-    }
-
-    const column = frame % 4;
-    bucketCelebrationSprite.style.backgroundPosition =
-      (column / 3) * 100 + "% " + (row / 2) * 100 + "%";
-
-    if (frame === 3) {
-      bucketCelebrationTimeout = setTimeout(function () {
-        if (animationId !== bucketCelebrationAnimationId) {
-          return;
-        }
-
-        bucketCelebrationSprite.hidden = true;
-        bucketCelebrationSprite.style.backgroundPosition = "0 0";
-        girlBucketScene.classList.remove("bucket-celebrating");
-        bucketSidekickAnimating = false;
-        playShoulderAnimation(scheduleShoulderIdleAnimation);
-      }, 150);
-      return;
-    }
-
-    frame += 1;
-    bucketCelebrationTimeout = setTimeout(showNextFrame, 150);
+  const completedBucket = completedBucketsContainer.children[bucketNumber - 1];
+  if (!completedBucket) {
+    console.error("Could not find completed bucket " + bucketNumber + " for sprite celebration.");
+    return;
   }
 
-  showNextFrame();
+  completedBucketsContainer
+    .querySelectorAll(".bucket-celebrating")
+    .forEach(function (bucket) {
+      bucket.classList.remove("bucket-celebrating");
+    });
+
+  setScene(2);
+  completedBucket.classList.add("bucket-celebrating");
+  bucketSidekickAnimating = true;
+  sceneAnimationMode = "celebrating";
+  currentSceneFrame = 0;
+  setSpriteFrame(mainGirl, 8);
+  setSpriteFrame(waterDropBucketSprite, 0);
+  moveWaterDropToBucket(completedBucket);
+}
+
+function playWinningGirlAnimation() {
+  setScene(2);
+  sceneAnimationMode = "celebrating";
+  currentSceneFrame = 0;
+  setSpriteFrame(mainGirl, 8);
+  setSpriteFrame(waterDropBucketSprite, 0);
 }
 
 function resetDecorativeAnimations() {
-  clearTimeout(shoulderIdleTimeout);
-  clearTimeout(bucketCelebrationTimeout);
-  bucketCelebrationAnimationId += 1;
-  bucketCelebrationSprite.hidden = true;
-  bucketCelebrationSprite.style.backgroundPosition = "0 0";
-  girlBucketScene.classList.remove("bucket-celebrating");
   bucketSidekickAnimating = false;
-  stopShoulderAnimation();
+  sceneAnimationMode = "idle";
+  currentSceneFrame = 0;
+  if (currentScene === 2) {
+    positionWaterDropAtGirl(false);
+  }
+  completedBucketsContainer
+    .querySelectorAll(".bucket-celebrating")
+    .forEach(function (bucket) {
+      bucket.classList.remove("bucket-celebrating");
+    });
+}
+
+function initializeSceneArt() {
+  const loadPromises = SCENE_ART_ASSETS.map(function (assetPath) {
+    return new Promise(function (resolve) {
+      const image = new Image();
+      image.onload = function () {
+        resolve(true);
+      };
+      image.onerror = function () {
+        console.error("Failed to load game art: " + assetPath);
+        resolve(false);
+      };
+      image.src = assetPath;
+    });
+  });
+
+  Promise.all(loadPromises).then(function (results) {
+    gameArtLoaded = results.every(Boolean);
+    if (!gameArtLoaded) {
+      gameArtLoading.textContent = "Game art failed to load. Check the browser console.";
+      startButton.disabled = true;
+      return;
+    }
+
+    gameArtLoading.hidden = true;
+    setScene(0);
+    sceneFrameInterval = setInterval(tickSceneSprites, SCENE_FRAME_INTERVAL);
+    sceneRotationInterval = setInterval(function () {
+      if (sceneAnimationMode !== "idle") {
+        return;
+      }
+      setScene((currentScene + 1) % 3);
+    }, SCENE_ROTATION_INTERVAL);
+    startButton.disabled = selectedPlayer === null;
+  });
 }
 
 // Update the score, timer, and bucket
 function updateDisplay() {
-  const goal = getGoal();
-
   levelDisplay.textContent = level;
   scoreDisplay.textContent = score;
   timerDisplay.textContent = timeLeft;
-
-  bucketProgress.textContent =
-    Math.min(score, goal) + " / " + goal + " bottles";
+  completedBucketsDisplay.textContent = completedBuckets;
+  bucketGoalDisplay.textContent = getGoal();
+  currentBucketDisplay.textContent = currentBucketCatches;
 
   updateBucket();
+  updateCompletedBuckets();
   updateLegend();
+}
+
+function updateCompletedBuckets() {
+  if (renderedCompletedBuckets === completedBuckets) {
+    return;
+  }
+
+  completedBucketsContainer.replaceChildren();
+  for (let bucketNumber = 1; bucketNumber <= completedBuckets; bucketNumber += 1) {
+    const bucket = document.createElement("img");
+    bucket.className = "completed-bucket";
+    bucket.src = "img/FULL BUCKET.png";
+    bucket.alt = "Completed full water bucket " + bucketNumber;
+    bucket.dataset.bucketNumber = bucketNumber;
+    completedBucketsContainer.appendChild(bucket);
+  }
+
+  renderedCompletedBuckets = completedBuckets;
 }
 
 // Show only this level's bad item in the legend
@@ -295,16 +354,9 @@ function updateLegend() {
   });
 }
 
-// Change the bucket picture as the score increases
+// Show the active bucket's empty, one-third, or two-thirds stage.
 function updateBucket() {
-  const bucketStage = Math.min(
-    bucketImages.length - 1,
-    Math.floor((score / getGoal()) * (bucketImages.length - 1))
-  );
-
-  // Water level rises a little with every bottle
-  bucketWaterLevel.style.height =
-    Math.min(100, (score / getGoal()) * 100) + "%";
+  const bucketStage = Math.min(currentBucketCatches, bucketImages.length - 1);
 
   bucketImage.src = bucketImages[bucketStage];
   bucketImage.alt = bucketNames[bucketStage];
@@ -388,7 +440,7 @@ function selectPlayer(playerNumber) {
 
   youLabel.className = "you-label visible you-" + playerNumber;
 
-  startButton.disabled = false;
+  startButton.disabled = !gameArtLoaded;
 
   showTurnStatus("Player " + playerNumber + " selected.", "idle");
 }
@@ -528,8 +580,11 @@ function collectItem(event) {
     return;
   }
 
+  let completedBucket = false;
+
   if (item.type !== "water") {
     score = Math.max(0, score - COLA_PENALTY);
+    currentBucketCatches = Math.max(0, currentBucketCatches - 1);
     playPlayerAnimation(1);
 
     showFeedback(
@@ -541,8 +596,14 @@ function collectItem(event) {
     flashPenalty();
   } else if (item.square === selectedPlayer - 1) {
     score = score + 1;
-    playPlayerAnimation(0, false);
-    scheduleShoulderIdleAnimation();
+    currentBucketCatches += 1;
+    playGirlEncouragement();
+
+    if (currentBucketCatches === CATCHES_PER_BUCKET) {
+      completedBuckets += 1;
+      currentBucketCatches = 0;
+      completedBucket = true;
+    }
 
     showFeedback(
       "Clean water collected! +1",
@@ -559,9 +620,12 @@ function collectItem(event) {
   }
 
   updateDisplay();
+  if (completedBucket) {
+    playBucketCelebration(completedBuckets);
+  }
   hideItem();
 
-  if (score >= getGoal()) {
+  if (completedBuckets >= getGoal()) {
     endGame();
     return;
   }
@@ -581,26 +645,27 @@ function flashPenalty() {
 
 // Make the main girl cheer, or stop
 function setGirlCelebrating(celebrating) {
-  mainGirl.classList.toggle("celebrating", celebrating);
   celebrationSparkles.classList.toggle("visible", celebrating);
 }
 
 // Start a new game
 function startGame() {
-  if (gameActive || selectedPlayer === null) {
+  if (gameActive || selectedPlayer === null || !gameArtLoaded) {
     return;
   }
 
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
-  clearTimeout(shoulderIdleTimeout);
-
   if (levelCleared) {
     level = level + 1;
     levelCleared = false;
   }
 
+  resetDecorativeAnimations();
   score = 0;
+  completedBuckets = 0;
+  currentBucketCatches = 0;
+  renderedCompletedBuckets = -1;
   timeLeft = getGameTime();
   turnCount = 0;
   gameActive = true;
@@ -615,14 +680,10 @@ function startGame() {
   setGirlCelebrating(false);
   resetPlayerSprite();
   updateDisplay();
-  if (!bucketSidekickAnimating && !shoulderAnimationRunning) {
-    playShoulderAnimation();
-  }
-  scheduleShoulderIdleAnimation();
-
   showFeedback(
-    "Level " + level + ": collect " + getGoal() + " bottles! You are Player " +
-      selectedPlayer + ". Click the bottle only in your square!",
+    "Level " + level + ": fill " + getGoal() + " buckets in " + getGameTime() +
+      " seconds. You are Player " + selectedPlayer +
+      ". Catch water only in your square!",
     "good"
   );
 
@@ -649,14 +710,12 @@ function endGame() {
 
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
-  clearTimeout(shoulderIdleTimeout);
-
   hideItem();
 
-  startButton.disabled = false;
+  startButton.disabled = !gameArtLoaded || selectedPlayer === null;
   court.classList.remove("game-running");
 
-  const playerWon = score >= getGoal();
+  const playerWon = completedBuckets >= getGoal();
   const messages = playerWon ? winningMessages : losingMessages;
 
   const randomMessage =
@@ -665,9 +724,7 @@ function endGame() {
   if (playerWon) {
     levelCleared = true;
     startButton.textContent = "Start Level " + (level + 1);
-    completedBuckets += 1;
-    playBucketCelebration(completedBuckets);
-    playPlayerAnimation(2, true);
+    playWinningGirlAnimation();
 
     showFeedback(
       "Level " + level + " complete! " + randomMessage +
@@ -697,6 +754,8 @@ function resetGame() {
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
   completedBuckets = 0;
+  currentBucketCatches = 0;
+  renderedCompletedBuckets = -1;
   resetDecorativeAnimations();
 
   score = 0;
@@ -710,7 +769,7 @@ function resetGame() {
   resetPlayerSprite();
 
   // Start stays locked until a player is selected
-  startButton.disabled = selectedPlayer === null;
+  startButton.disabled = selectedPlayer === null || !gameArtLoaded;
   startButton.textContent = "Start Game";
   court.classList.remove("game-running");
 
@@ -810,25 +869,19 @@ function updateTruckPickupCountdown() {
   truckPickup.classList.toggle("urgent", secondsRemaining <= 30 * 60);
 }
 
-let truckAnimationTimeout;
+let truckAnimationInterval;
 
 function animateTruckSprite() {
-  clearTimeout(truckAnimationTimeout);
-
   let frame = 0;
-  function showNextFrame() {
-    truckIcon.style.backgroundPosition = (frame * 100 / 3) + "% 0";
-    frame += 1;
-    if (frame < 4) {
-      truckAnimationTimeout = setTimeout(showNextFrame, 120);
-    } else {
-      truckAnimationTimeout = setTimeout(function () {
-        truckIcon.style.backgroundPosition = "0 0";
-      }, 120);
-    }
-  }
-
-  showNextFrame();
+  truckIcon.style.backgroundPosition = "0% 0%";
+  clearInterval(truckAnimationInterval);
+  truckAnimationInterval = setInterval(function () {
+    frame = (frame + 1) % 12;
+    const column = frame % 4;
+    const row = Math.floor(frame / 4);
+    truckIcon.style.backgroundPosition =
+      (column * 100 / 3) + "% " + (row * 50) + "%";
+  }, 130);
 }
 
 // Players on the court are the only way to choose a character
@@ -856,7 +909,7 @@ setInterval(updateTimeOfDayBackground, 60 * 1000);
 updateTruckPickupCountdown();
 setInterval(updateTruckPickupCountdown, 1000);
 animateTruckSprite();
-setInterval(animateTruckSprite, 15 * 1000);
 
 // Display the starting score and bucket
 updateDisplay();
+initializeSceneArt();
