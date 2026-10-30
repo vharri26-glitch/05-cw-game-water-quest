@@ -12,6 +12,8 @@ const MAX_GOAL = 16;
 const BASE_SPAWN_SPEED = 1500;
 const SPEED_STEP = 100;
 const MIN_SPAWN_SPEED = 800;
+const PLAYER_FRAME_DURATIONS = [180, 130, 130, 220];
+const PLAYER_FRAME_POSITIONS = ["0%", "33.333%", "66.667%", "100%"];
 
 // Game state
 let level = 1;
@@ -92,6 +94,13 @@ const youLabel = document.getElementById("you-label");
 const courtPlayers = document.querySelectorAll(".court-player");
 const court = document.getElementById("game-court");
 const courtSquares = document.querySelectorAll(".court-square");
+const timeBackgroundLayers = [
+  document.getElementById("time-background-a"),
+  document.getElementById("time-background-b")
+];
+const truckPickup = document.getElementById("truck-pickup");
+const truckCountdown = document.getElementById("truck-countdown");
+const truckIcon = document.getElementById("truck-icon");
 
 // The three arrows inside AROWS.png
 const arrowClasses = [
@@ -328,39 +337,34 @@ function playPlayerAnimation(row, holdFinalFrame) {
 
   resetPlayerSprite();
   animatedPlayer = courtPlayers[selectedPlayer - 1];
+  animatedPlayer.classList.add("is-animating");
 
   let frame = 0;
 
-  function showNextFrame() {
-    const columnPosition = (frame / 3) * 100;
-    const rowPosition = (row / 2) * 100;
-
+  function showFrame() {
     animatedPlayer.style.backgroundPosition =
-      columnPosition + "% " + rowPosition + "%";
+      PLAYER_FRAME_POSITIONS[frame] + " " + (row * 50) + "%";
 
-    if (frame === 3) {
-      if (holdFinalFrame) {
-        return;
-      }
-
-      playerAnimationTimeout = setTimeout(function () {
-        resetPlayerSprite();
-      }, frameDuration);
+    if (frame === PLAYER_FRAME_POSITIONS.length - 1) {
+      playerAnimationTimeout = setTimeout(
+        resetPlayerSprite,
+        holdFinalFrame ? 900 : PLAYER_FRAME_DURATIONS[frame]
+      );
       return;
     }
 
     frame += 1;
-    playerAnimationTimeout = setTimeout(showNextFrame, frameDuration);
+    playerAnimationTimeout = setTimeout(showFrame, PLAYER_FRAME_DURATIONS[frame - 1]);
   }
 
-  const frameDuration = selectedPlayer === 4 ? 150 : 120;
-  showNextFrame();
+  showFrame();
 }
 
 function resetPlayerSprite() {
   clearTimeout(playerAnimationTimeout);
   if (animatedPlayer) {
     animatedPlayer.style.backgroundPosition = "0 0";
+    animatedPlayer.classList.remove("is-animating");
     animatedPlayer = null;
   }
 }
@@ -495,7 +499,6 @@ function spawnItem() {
   });
 
   if (mine && mine.type === "water") {
-    playPlayerAnimation(0);
     highlightSquare(myIndex);
     showTurnStatus("YOUR TURN — CLICK NOW!", "your-turn");
   } else if (mine) {
@@ -538,6 +541,7 @@ function collectItem(event) {
     flashPenalty();
   } else if (item.square === selectedPlayer - 1) {
     score = score + 1;
+    playPlayerAnimation(0, false);
     scheduleShoulderIdleAnimation();
 
     showFeedback(
@@ -663,7 +667,7 @@ function endGame() {
     startButton.textContent = "Start Level " + (level + 1);
     completedBuckets += 1;
     playBucketCelebration(completedBuckets);
-    playPlayerAnimation(2, selectedPlayer === 4);
+    playPlayerAnimation(2, true);
 
     showFeedback(
       "Level " + level + " complete! " + randomMessage +
@@ -747,6 +751,86 @@ function createConfetti() {
   }
 }
 
+function getBackgroundPeriod(hour) {
+  if (hour >= 5 && hour < 8) {
+    return "dawn";
+  }
+  if (hour >= 8 && hour < 12) {
+    return "morning";
+  }
+  if (hour >= 12 && hour < 16) {
+    return "afternoon";
+  }
+  if (hour >= 16 && hour < 19) {
+    return "sunset";
+  }
+  return "night";
+}
+
+let activeBackgroundIndex = -1;
+let activeBackgroundPeriod = "";
+
+function updateTimeOfDayBackground() {
+  const period = getBackgroundPeriod(new Date().getHours());
+  if (period === activeBackgroundPeriod) {
+    return;
+  }
+
+  const nextIndex = activeBackgroundIndex === 0 ? 1 : 0;
+  const nextLayer = timeBackgroundLayers[nextIndex];
+  const oldLayer = timeBackgroundLayers[activeBackgroundIndex];
+  const imageName = "four-for-water-" + period + ".png";
+
+  nextLayer.style.backgroundImage = 'url("img/' + imageName + '")';
+  nextLayer.classList.add("active");
+  if (oldLayer) {
+    oldLayer.classList.remove("active");
+  }
+
+  activeBackgroundIndex = nextIndex;
+  activeBackgroundPeriod = period;
+}
+
+function updateTruckPickupCountdown() {
+  const now = new Date();
+  const pickup = new Date(now);
+  pickup.setHours(19, 0, 0, 0);
+
+  if (now >= pickup) {
+    pickup.setDate(pickup.getDate() + 1);
+  }
+
+  const secondsRemaining = Math.max(0, Math.floor((pickup - now) / 1000));
+  const hours = String(Math.floor(secondsRemaining / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((secondsRemaining % 3600) / 60)).padStart(2, "0");
+  const seconds = String(secondsRemaining % 60).padStart(2, "0");
+
+  truckCountdown.textContent = hours + ":" + minutes + ":" + seconds;
+  truckCountdown.dateTime = "PT" + hours + "H" + minutes + "M" + seconds + "S";
+  truckPickup.classList.toggle("urgent", secondsRemaining <= 30 * 60);
+}
+
+let truckAnimationTimeout;
+
+function animateTruckSprite() {
+  clearTimeout(truckAnimationTimeout);
+
+  let frame = 0;
+  function showNextFrame() {
+    truckIcon.style.backgroundPosition = (frame * 100 / 3) + "% 0";
+    frame += 1;
+    if (frame < 4) {
+      truckAnimationTimeout = setTimeout(showNextFrame, 120);
+    } else {
+      truckAnimationTimeout = setTimeout(function () {
+        truckIcon.style.backgroundPosition = "0 0";
+      }, 120);
+    }
+  }
+
+  showNextFrame();
+}
+
 // Players on the court are the only way to choose a character
 courtPlayers.forEach(function (player, index) {
   player.addEventListener("click", function () {
@@ -766,6 +850,13 @@ courtPlayers.forEach(function (player, index) {
 gameItem.addEventListener("click", collectItem);
 startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGame);
+
+updateTimeOfDayBackground();
+setInterval(updateTimeOfDayBackground, 60 * 1000);
+updateTruckPickupCountdown();
+setInterval(updateTruckPickupCountdown, 1000);
+animateTruckSprite();
+setInterval(animateTruckSprite, 15 * 1000);
 
 // Display the starting score and bucket
 updateDisplay();

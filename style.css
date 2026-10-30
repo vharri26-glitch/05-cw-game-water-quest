@@ -160,31 +160,8 @@ h1 span {
 .court-player {
   position: absolute;
   z-index: 2;
-  width: 21%;
-  max-height: 36%;
-  object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.28));
-}
-
-.player-one {
-  top: 8%;
-  left: 13%;
-}
-
-.player-two {
-  top: 8%;
-  right: 13%;
-}
-
-.player-three {
-  bottom: 8%;
-  left: 13%;
-}
-
-.player-four {
-  right: 13%;
-  bottom: 8%;
 }
 
 /*
@@ -618,26 +595,6 @@ h1 {
   filter: drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
 }
 
-.player-one {
-  top: 12%;
-  left: 10%;
-}
-
-.player-two {
-  top: 12%;
-  right: 10%;
-}
-
-.player-three {
-  bottom: 7%;
-  left: 10%;
-}
-
-.player-four {
-  right: 10%;
-  bottom: 7%;
-}
-
 /* Numbers remain visible above the characters */
 
 .court-number {
@@ -794,8 +751,6 @@ h1 {
   max-height: 30%;
   right: auto;
   bottom: auto;
-  transform-origin: 50% 100%;
-  animation: player-bounce 2.4s ease-in-out infinite;
 }
 
 .court-player.player-one,
@@ -827,35 +782,6 @@ h1 {
 
 .court-player.player-four {
   background-image: url("img/PLAYER-4-SPRITE.png");
-  aspect-ratio: 1;
-  animation: none;
-  transform: none;
-}
-
-.player-one {
-  top: 12%;
-  left: 15.5%;
-  animation-delay: 0s;
-}
-
-.player-two {
-  top: 12%;
-  left: 65.5%;
-  animation-name: player-sway;
-  animation-duration: 2.9s;
-  animation-delay: -0.8s;
-}
-
-.player-three {
-  top: 57%;
-  left: 15.5%;
-  animation-duration: 2.7s;
-  animation-delay: -1.5s;
-}
-
-.player-four {
-  top: 57%;
-  left: 65.5%;
 }
 
 /* Numbers sit above every player and the item */
@@ -882,28 +808,6 @@ h1 {
 .number-four {
   right: 5%;
   bottom: 5%;
-}
-
-@keyframes player-bounce {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-
-  50% {
-    transform: translateY(-5%) scale(1.03, 0.98);
-  }
-}
-
-@keyframes player-sway {
-  0%,
-  100% {
-    transform: rotate(-3deg) translateY(0);
-  }
-
-  50% {
-    transform: rotate(3deg) translateY(-3%);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1252,30 +1156,6 @@ h1 {
 
 /* ---------- "CHOOSE A PLAYER" GLOW HINT ---------- */
 
-/* Until a player is chosen, players 1-4 glow in order (1s each),
-   along with their number and square. */
-.court.choose-mode .player-one {
-  animation:
-    player-bounce 2.4s ease-in-out infinite 0s,
-    pick-glow 4s ease-in-out infinite 0s;
-}
-
-.court.choose-mode .player-two {
-  animation:
-    player-sway 2.9s ease-in-out infinite -0.8s,
-    pick-glow 4s ease-in-out infinite 1s;
-}
-
-.court.choose-mode .player-three {
-  animation:
-    player-bounce 2.7s ease-in-out infinite -1.5s,
-    pick-glow 4s ease-in-out infinite 2s;
-}
-
-.court.choose-mode .player-four {
-  animation: pick-glow 4s ease-in-out infinite 3s;
-}
-
 .court.choose-mode .number-one {
   animation: pick-number 4s ease-in-out infinite 0s;
 }
@@ -1306,24 +1186,6 @@ h1 {
 
 .court.choose-mode .square-four {
   animation: pick-square 4s ease-in-out infinite 3s;
-}
-
-@keyframes pick-glow {
-  0%,
-  30%,
-  100% {
-    filter:
-      drop-shadow(0 0 0 rgba(255, 255, 255, 0))
-      drop-shadow(0 0 0 rgba(10, 140, 255, 0))
-      drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
-  }
-
-  12% {
-    filter:
-      drop-shadow(0 0 10px rgba(255, 255, 255, 1))
-      drop-shadow(0 0 16px rgba(10, 140, 255, 1))
-      drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
-  }
 }
 
 @keyframes pick-number {
@@ -1388,6 +1250,9 @@ html {
 
 body {
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  background: transparent;
 }
 
 .container {
@@ -1596,3 +1461,176 @@ body {
 .achievement {
   font-size: clamp(18px, 2.4vw, 24px);
 }
+
+.time-background-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: #a8dfff;
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+  pointer-events: none;
+}
+
+.time-background-layer.active {
+  opacity: 1;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+}
+
+.stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.truck-pickup {
+  min-width: 0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--black);
+  background: #fff8d6;
+  border: 3px solid var(--black);
+  border-radius: 18px;
+  box-shadow: 5px 5px 0 var(--black);
+  font-weight: 900;
+}
+
+.truck-pickup-label {
+  font-size: clamp(13px, 1.6vw, 18px);
+}
+
+.truck-pickup-countdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.truck-countdown {
+  font-size: clamp(18px, 2.4vw, 26px);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.truck-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  background-image: url("img/TRUCK-SPRITE.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 400% 300%;
+}
+
+.truck-pickup.urgent {
+  animation: truck-pickup-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes truck-pickup-pulse {
+  50% {
+    box-shadow: 5px 5px 0 var(--yellow), 0 0 0 5px rgba(255, 201, 7, 0.45);
+  }
+}
+
+@media (max-width: 760px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .truck-pickup {
+    grid-column: 1 / -1;
+    min-height: 74px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .truck-pickup {
+    padding: 8px;
+  }
+
+  .truck-pickup-countdown {
+    gap: 4px;
+  }
+
+  .truck-icon {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .truck-countdown {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .time-background-layer {
+    transition: none;
+  }
+
+  .truck-pickup.urgent {
+    animation: none;
+  }
+}
+
+  .court-player.player-one,
+  .court-player.player-two,
+  .court-player.player-three,
+  .court-player.player-four {
+    width: 20%;
+    height: 20%;
+    max-height: none;
+    padding: 0;
+    overflow: hidden;
+    appearance: none;
+    border: 0;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: 0% 0%;
+    background-size: 400% 300%;
+    transform: translate(-50%, -100%);
+    scale: 1;
+  }
+
+  .court-player.player-one {
+    top: 48%;
+    left: 25%;
+  }
+
+  .court-player.player-two {
+    top: 48%;
+    left: 75%;
+  }
+
+  .court-player.player-three {
+    top: 96%;
+    left: 25%;
+  }
+
+  .court-player.player-four {
+    top: 96%;
+    left: 75%;
+  }
+
+  .court:not(.game-running) .court-player:not(.is-animating) {
+    animation: player-breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes player-breathe {
+    50% {
+      scale: 1.012;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .court:not(.game-running) .court-player:not(.is-animating) {
+      animation: none;
+    }
+  }

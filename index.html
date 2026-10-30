@@ -8,6 +8,9 @@
 </head>
 
 <body>
+  <div id="time-background-a" class="time-background-layer" aria-hidden="true"></div>
+  <div id="time-background-b" class="time-background-layer" aria-hidden="true"></div>
+
   <!-- Removes the pale textured background of the bucket images.
        Background pixels have high red + blue; the bucket and water do not. -->
   <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
@@ -76,6 +79,14 @@
         Time
         <span id="timer">45</span>s
       </p>
+
+      <div id="truck-pickup" class="truck-pickup">
+        <span class="truck-pickup-label">Truck Pickup</span>
+        <div class="truck-pickup-countdown">
+          <span id="truck-icon" class="truck-icon" aria-hidden="true"></span>
+          <time id="truck-countdown" class="truck-countdown">--:--:--</time>
+        </div>
+      </div>
     </section>
 
     <div
