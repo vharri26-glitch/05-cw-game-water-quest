@@ -1415,6 +1415,7 @@ body {
 .court-player.player-two,
 .court-player.player-three,
 .court-player.player-four {
+  z-index: 3;
   width: 20%;
   height: 20%;
   max-height: none;
@@ -1428,6 +1429,11 @@ body {
   background-size: 400% 300%;
   transform: translate(-50%, -100%);
   scale: 1;
+}
+
+.court:not(.game-running) .court-player {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .court-player.player-one {

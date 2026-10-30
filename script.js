@@ -1,9 +1,10 @@
 // Game settings
 const LEVEL_SETTINGS = [
-  { buckets: 8, seconds: 60 },
-  { buckets: 12, seconds: 75 },
-  { buckets: 16, seconds: 90 },
-  { buckets: 20, seconds: 105 }
+  { buckets: 5, seconds: 60 },
+  { buckets: 8, seconds: 75 },
+  { buckets: 12, seconds: 90 },
+  { buckets: 16, seconds: 105 },
+  { buckets: 20, seconds: 120 }
 ];
 const CATCHES_PER_BUCKET = 3;
 const COLA_CHANCE = 0.15;
@@ -14,12 +15,14 @@ const SPEED_STEP = 100;
 const MIN_SPAWN_SPEED = 800;
 const PLAYER_FRAME_DURATIONS = [180, 130, 130, 220];
 const PLAYER_FRAME_POSITIONS = ["0%", "33.333%", "66.667%", "100%"];
+const BUCKET_SPRITE_FRAME_INTERVAL = 150;
 const SCENE_ART_ASSETS = [
   "img/MAIN-GIRL-SPRITE.png",
   "img/MAIN-GIRL-SHOULDER-SPRITE.png",
   "img/WATER-DROP-BUCKET-SPRITE.png"
 ];
-const SCENE_FRAME_INTERVAL = 150;
+const SCENE_FRAME_INTERVAL = 600;
+const SCENE_IDLE_HOLD_TICKS = Math.ceil(5000 / SCENE_FRAME_INTERVAL);
 const SCENE_ROTATION_INTERVAL = 20000;
 
 // Game state
@@ -37,15 +40,16 @@ const itemPool = [];
 let turnCount = 0;
 let spawnTimeout;
 let timerInterval;
-let playerAnimationTimeout;
-let animatedPlayer = null;
+const playerAnimationTimeouts = [null, null, null, null];
 let bucketSidekickAnimating = false;
+let bucketSpriteAnimationInterval;
 let gameArtLoaded = false;
 let sceneRotationInterval;
 let sceneFrameInterval;
 let currentScene = 0;
 let currentSceneFrame = 0;
 let sceneAnimationMode = "idle";
+let idleHoldTicks = 0;
 
 // Random winning messages
 const winningMessages = [
@@ -147,10 +151,17 @@ function setSpriteFrame(sprite, frame) {
 }
 
 function setScene(sceneIndex) {
+  const sceneChanged = currentScene !== sceneIndex;
   currentScene = sceneIndex;
   mainGirlScene.classList.toggle("active", sceneIndex !== 1);
   shoulderGirlScene.classList.toggle("active", sceneIndex === 1);
   waterDropBucketSprite.classList.toggle("active", sceneIndex === 2);
+  if (sceneChanged) {
+    sceneAnimationMode = "idle";
+    currentSceneFrame = 0;
+    idleHoldTicks = 0;
+    setSpriteFrame(getActiveGirlSprite(), 0);
+  }
   if (sceneIndex === 2 && !bucketSidekickAnimating) {
     positionWaterDropAtGirl(false);
   }
@@ -185,49 +196,45 @@ function getActiveGirlSprite() {
 }
 
 function tickSceneSprites() {
-  if (sceneAnimationMode === "encouraging") {
-    setSpriteFrame(getActiveGirlSprite(), 4 + currentSceneFrame);
+  const activeGirlSprite = getActiveGirlSprite();
+
+  if (sceneAnimationMode === "idle") {
+    if (idleHoldTicks > 0) {
+      idleHoldTicks -= 1;
+      return;
+    }
+
+    setSpriteFrame(activeGirlSprite, currentSceneFrame);
+    currentSceneFrame += 1;
+    if (currentSceneFrame >= 4) {
+      currentSceneFrame = 0;
+      idleHoldTicks = SCENE_IDLE_HOLD_TICKS;
+      setSpriteFrame(activeGirlSprite, 0);
+    }
+    return;
+  }
+
+  if (sceneAnimationMode === "encouraging" || sceneAnimationMode === "girlCelebrating") {
+    const firstFrame = sceneAnimationMode === "encouraging" ? 4 : 8;
+    setSpriteFrame(activeGirlSprite, firstFrame + currentSceneFrame);
     currentSceneFrame += 1;
     if (currentSceneFrame >= 4) {
       sceneAnimationMode = "idle";
       currentSceneFrame = 0;
+      idleHoldTicks = SCENE_IDLE_HOLD_TICKS;
+      setSpriteFrame(activeGirlSprite, 0);
     }
-    return;
   }
-
-  if (sceneAnimationMode === "celebrating") {
-    setSpriteFrame(mainGirl, 8 + Math.min(currentSceneFrame, 3));
-    setSpriteFrame(waterDropBucketSprite, currentSceneFrame % 12);
-    currentSceneFrame += 1;
-    if (currentSceneFrame >= 12) {
-      sceneAnimationMode = "idle";
-      currentSceneFrame = 0;
-      completedBucketsContainer
-        .querySelectorAll(".bucket-celebrating")
-        .forEach(function (bucket) {
-          bucket.classList.remove("bucket-celebrating");
-        });
-      if (bucketSidekickAnimating) {
-        positionWaterDropAtGirl(true);
-        bucketSidekickAnimating = false;
-      }
-    }
-    return;
-  }
-
-  setSpriteFrame(mainGirl, currentSceneFrame);
-  setSpriteFrame(shoulderGirlSprite, currentSceneFrame);
-  setSpriteFrame(waterDropBucketSprite, currentSceneFrame);
-  currentSceneFrame = (currentSceneFrame + 1) % 12;
 }
 
 function playGirlEncouragement() {
-  if (sceneAnimationMode === "celebrating") {
+  if (sceneAnimationMode !== "idle") {
     return;
   }
 
   sceneAnimationMode = "encouraging";
-  currentSceneFrame = 0;
+  currentSceneFrame = 1;
+  idleHoldTicks = 0;
   setSpriteFrame(getActiveGirlSprite(), 4);
 }
 
@@ -247,25 +254,49 @@ function playBucketCelebration(bucketNumber) {
   setScene(2);
   completedBucket.classList.add("bucket-celebrating");
   bucketSidekickAnimating = true;
-  sceneAnimationMode = "celebrating";
-  currentSceneFrame = 0;
+  sceneAnimationMode = "girlCelebrating";
+  currentSceneFrame = 1;
+  idleHoldTicks = 0;
   setSpriteFrame(mainGirl, 8);
   setSpriteFrame(waterDropBucketSprite, 0);
   moveWaterDropToBucket(completedBucket);
+
+  clearInterval(bucketSpriteAnimationInterval);
+  let bucketFrame = 0;
+  bucketSpriteAnimationInterval = setInterval(function () {
+    bucketFrame += 1;
+    if (bucketFrame >= 12) {
+      clearInterval(bucketSpriteAnimationInterval);
+      bucketSpriteAnimationInterval = null;
+      bucketSidekickAnimating = false;
+      setSpriteFrame(waterDropBucketSprite, 0);
+      completedBucket.classList.remove("bucket-celebrating");
+      positionWaterDropAtGirl(true);
+      return;
+    }
+    setSpriteFrame(waterDropBucketSprite, bucketFrame);
+  }, BUCKET_SPRITE_FRAME_INTERVAL);
 }
 
 function playWinningGirlAnimation() {
   setScene(2);
-  sceneAnimationMode = "celebrating";
-  currentSceneFrame = 0;
+  sceneAnimationMode = "girlCelebrating";
+  currentSceneFrame = 1;
+  idleHoldTicks = 0;
   setSpriteFrame(mainGirl, 8);
-  setSpriteFrame(waterDropBucketSprite, 0);
+  courtPlayers.forEach(function (player, playerIndex) {
+    playPlayerAnimation(playerIndex, 2);
+  });
 }
 
 function resetDecorativeAnimations() {
+  clearInterval(bucketSpriteAnimationInterval);
+  bucketSpriteAnimationInterval = null;
   bucketSidekickAnimating = false;
   sceneAnimationMode = "idle";
   currentSceneFrame = 0;
+  idleHoldTicks = 0;
+  setSpriteFrame(waterDropBucketSprite, 0);
   if (currentScene === 2) {
     positionWaterDropAtGirl(false);
   }
@@ -292,14 +323,15 @@ function initializeSceneArt() {
   });
 
   Promise.all(loadPromises).then(function (results) {
-    gameArtLoaded = results.every(Boolean);
-    if (!gameArtLoaded) {
-      gameArtLoading.textContent = "Game art failed to load. Check the browser console.";
-      startButton.disabled = true;
-      return;
+    gameArtLoaded = true;
+    if (results.some(function (loaded) { return !loaded; })) {
+      gameArtLoading.textContent =
+        "Some game art could not load. Check the browser console; you can still play.";
+      gameArtLoading.hidden = false;
+    } else {
+      gameArtLoading.hidden = true;
     }
 
-    gameArtLoading.hidden = true;
     setScene(0);
     sceneFrameInterval = setInterval(tickSceneSprites, SCENE_FRAME_INTERVAL);
     sceneRotationInterval = setInterval(function () {
@@ -381,44 +413,54 @@ function highlightSquare(squareIndex) {
   });
 }
 
-// Play one row of the selected player's four-frame sprite sheet.
-function playPlayerAnimation(row, holdFinalFrame) {
-  if (selectedPlayer === null) {
+// Player indices are zero-based and match the court's four buttons.
+function playPlayerAnimation(playerIndex, row) {
+  const player = courtPlayers[playerIndex];
+  if (!player || row < 0 || row > 2) {
     return;
   }
 
-  resetPlayerSprite();
-  animatedPlayer = courtPlayers[selectedPlayer - 1];
-  animatedPlayer.classList.add("is-animating");
+  resetPlayerSprite(playerIndex);
+  player.classList.add("is-animating");
 
   let frame = 0;
 
   function showFrame() {
-    animatedPlayer.style.backgroundPosition =
+    player.style.backgroundPosition =
       PLAYER_FRAME_POSITIONS[frame] + " " + (row * 50) + "%";
 
-    if (frame === PLAYER_FRAME_POSITIONS.length - 1) {
-      playerAnimationTimeout = setTimeout(
-        resetPlayerSprite,
-        holdFinalFrame ? 900 : PLAYER_FRAME_DURATIONS[frame]
-      );
+    if (frame >= PLAYER_FRAME_POSITIONS.length - 1) {
+      playerAnimationTimeouts[playerIndex] = setTimeout(function () {
+        resetPlayerSprite(playerIndex);
+      }, PLAYER_FRAME_DURATIONS[frame]);
       return;
     }
 
     frame += 1;
-    playerAnimationTimeout = setTimeout(showFrame, PLAYER_FRAME_DURATIONS[frame - 1]);
+    playerAnimationTimeouts[playerIndex] = setTimeout(showFrame, PLAYER_FRAME_DURATIONS[frame - 1]);
   }
 
   showFrame();
 }
 
-function resetPlayerSprite() {
-  clearTimeout(playerAnimationTimeout);
-  if (animatedPlayer) {
-    animatedPlayer.style.backgroundPosition = "0 0";
-    animatedPlayer.classList.remove("is-animating");
-    animatedPlayer = null;
-  }
+function resetPlayerSprite(playerIndex) {
+  const indices = Number.isInteger(playerIndex)
+    ? [playerIndex]
+    : courtPlayers.map(function (_, index) {
+      return index;
+    });
+
+  indices.forEach(function (index) {
+    const player = courtPlayers[index];
+    if (!player) {
+      return;
+    }
+
+    clearTimeout(playerAnimationTimeouts[index]);
+    playerAnimationTimeouts[index] = null;
+    player.style.backgroundPosition = "0% 0%";
+    player.classList.remove("is-animating");
+  });
 }
 
 // Choose which player the user controls
@@ -440,7 +482,7 @@ function selectPlayer(playerNumber) {
 
   youLabel.className = "you-label visible you-" + playerNumber;
 
-  startButton.disabled = !gameArtLoaded;
+  startButton.disabled = selectedPlayer === null;
 
   showTurnStatus("Player " + playerNumber + " selected.", "idle");
 }
@@ -540,7 +582,9 @@ function spawnItem() {
   const waterSquare = pickSquare();
   const randomArrow = Math.floor(Math.random() * arrowClasses.length);
 
-  placeItem(0, Math.random() < COLA_CHANCE ? getBadType() : "water", waterSquare);
+  const itemType = Math.random() < COLA_CHANCE ? getBadType() : "water";
+  placeItem(0, itemType, waterSquare);
+  playPlayerAnimation(waterSquare, 0);
 
   arrow.className =
     "direction-arrow visible " + arrowClasses[randomArrow];
@@ -585,7 +629,7 @@ function collectItem(event) {
   if (item.type !== "water") {
     score = Math.max(0, score - COLA_PENALTY);
     currentBucketCatches = Math.max(0, currentBucketCatches - 1);
-    playPlayerAnimation(1);
+    playPlayerAnimation(selectedPlayer - 1, 1);
 
     showFeedback(
       "Oh no, " + "the " + badItemInfo[item.type].label +
@@ -650,7 +694,7 @@ function setGirlCelebrating(celebrating) {
 
 // Start a new game
 function startGame() {
-  if (gameActive || selectedPlayer === null || !gameArtLoaded) {
+  if (gameActive || selectedPlayer === null) {
     return;
   }
 
@@ -712,7 +756,7 @@ function endGame() {
   clearInterval(timerInterval);
   hideItem();
 
-  startButton.disabled = !gameArtLoaded || selectedPlayer === null;
+  startButton.disabled = selectedPlayer === null;
   court.classList.remove("game-running");
 
   const playerWon = completedBuckets >= getGoal();
@@ -769,7 +813,7 @@ function resetGame() {
   resetPlayerSprite();
 
   // Start stays locked until a player is selected
-  startButton.disabled = selectedPlayer === null || !gameArtLoaded;
+  startButton.disabled = selectedPlayer === null;
   startButton.textContent = "Start Game";
   court.classList.remove("game-running");
 
@@ -884,19 +928,33 @@ function animateTruckSprite() {
   }, 130);
 }
 
-// Players on the court are the only way to choose a character
-courtPlayers.forEach(function (player, index) {
-  player.addEventListener("click", function () {
-    selectPlayer(index + 1);
-  });
+// Delegate selection so every court player remains selectable above its overlays.
+court.addEventListener("click", function (event) {
+  const player = event.target.closest(".court-player");
+  if (!player || !court.contains(player)) {
+    return;
+  }
 
-  if (player.tagName !== "BUTTON") {
-    player.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectPlayer(index + 1);
-      }
-    });
+  const playerIndex = Array.prototype.indexOf.call(courtPlayers, player);
+  if (playerIndex !== -1) {
+    selectPlayer(playerIndex + 1);
+  }
+});
+
+court.addEventListener("keydown", function (event) {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+
+  const player = event.target.closest(".court-player");
+  if (!player || !court.contains(player)) {
+    return;
+  }
+
+  const playerIndex = Array.prototype.indexOf.call(courtPlayers, player);
+  if (playerIndex !== -1) {
+    event.preventDefault();
+    selectPlayer(playerIndex + 1);
   }
 });
 
