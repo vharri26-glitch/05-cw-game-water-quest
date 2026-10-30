@@ -292,6 +292,65 @@ The code displays only one-third of it at a time.
   object-fit: contain;
 }
 
+.main-girl.concealed {
+  display: none;
+}
+
+.shoulder-animation {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background-image: url("img/MAIN-GIRL-SIDEKICK-SHOULDER.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 400% 300%;
+  pointer-events: none;
+}
+
+.shoulder-animation[hidden],
+.water-drop-sidekick[hidden] {
+  display: none;
+}
+
+.water-drop-sidekick {
+  position: absolute;
+  top: 24%;
+  left: 49%;
+  z-index: 5;
+  width: clamp(42px, 23%, 62px);
+  aspect-ratio: 1;
+  background-image: url("img/WATER-DROP-SIDEKICK.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 400% 300%;
+  transform: translate3d(0, 0, 0);
+  transition: transform 650ms cubic-bezier(0.2, 0.75, 0.3, 1);
+  pointer-events: none;
+}
+
+.bucket-celebration-sprite {
+  position: absolute;
+  right: -4%;
+  bottom: 0;
+  z-index: 6;
+  width: min(78%, 190px);
+  aspect-ratio: 1;
+  background-image: url("img/WATER-DROP-BUCKET-CELEBRATION.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 400% 300%;
+  pointer-events: none;
+}
+
+.bucket-celebration-sprite[hidden] {
+  display: none;
+}
+
+.girl-bucket-scene.bucket-celebrating .bucket-image,
+.girl-bucket-scene.bucket-celebrating .bucket-water {
+  visibility: hidden;
+}
+
 /* Places the changing bucket with the main girl */
 .bucket-image {
   position: absolute;

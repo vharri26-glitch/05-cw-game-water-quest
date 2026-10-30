@@ -27,6 +27,14 @@ let spawnTimeout;
 let timerInterval;
 let playerAnimationTimeout;
 let animatedPlayer = null;
+let completedBuckets = 0;
+let shoulderAnimationTimeout;
+let shoulderIdleTimeout;
+let shoulderAnimationId = 0;
+let bucketCelebrationTimeout;
+let bucketCelebrationAnimationId = 0;
+let bucketSidekickAnimating = false;
+let shoulderAnimationRunning = false;
 
 // Random winning messages
 const winningMessages = [
@@ -75,6 +83,10 @@ const startButton = document.getElementById("start-game");
 const resetButton = document.getElementById("reset-game");
 const bucketImage = document.getElementById("bucket-image");
 const bucketProgress = document.getElementById("bucket-progress");
+const shoulderAnimation = document.getElementById("shoulder-animation");
+const sidekick = document.getElementById("water-drop-sidekick");
+const bucketCelebrationSprite = document.getElementById("bucket-celebration-sprite");
+const girlBucketScene = document.querySelector(".girl-bucket-scene");
 const confettiContainer = document.getElementById("confetti");
 const youLabel = document.getElementById("you-label");
 const courtPlayers = document.querySelectorAll(".court-player");
@@ -104,6 +116,149 @@ function getSpawnSpeed() {
 // Short pause after a click, shrinking with the level
 function getClickPause() {
   return Math.round(getSpawnSpeed() * 0.45);
+}
+
+function showShoulderScene() {
+  shoulderAnimation.hidden = true;
+  shoulderAnimation.style.backgroundPosition = "0 0";
+  mainGirl.classList.remove("concealed");
+  sidekick.hidden = false;
+  sidekick.classList.remove("behind-bucket", "in-front-of-bucket", "big-celebration");
+  sidekick.style.transition = "";
+  sidekick.style.backgroundPosition = "0 0";
+  sidekick.style.transform = "translate3d(0, 0, 0)";
+}
+
+function stopShoulderAnimation() {
+  shoulderAnimationId += 1;
+  clearTimeout(shoulderAnimationTimeout);
+  shoulderAnimationRunning = false;
+  showShoulderScene();
+}
+
+function playShoulderAnimation(onComplete) {
+  if (bucketSidekickAnimating || shoulderAnimationRunning) {
+    return;
+  }
+
+  stopShoulderAnimation();
+  const animationId = ++shoulderAnimationId;
+  let frame = 0;
+  shoulderAnimationRunning = true;
+
+  shoulderAnimation.hidden = false;
+  mainGirl.classList.add("concealed");
+  sidekick.hidden = true;
+
+  function showNextFrame() {
+    if (animationId !== shoulderAnimationId) {
+      return;
+    }
+
+    const column = frame % 4;
+    const row = Math.floor(frame / 4);
+    shoulderAnimation.style.backgroundPosition =
+      (column / 3) * 100 + "% " + (row / 2) * 100 + "%";
+
+    if (frame === 11) {
+      shoulderAnimationTimeout = setTimeout(function () {
+        if (animationId !== shoulderAnimationId) {
+          return;
+        }
+
+        shoulderAnimationRunning = false;
+        showShoulderScene();
+        if (onComplete) {
+          onComplete();
+        }
+      }, 180);
+      return;
+    }
+
+    frame += 1;
+    shoulderAnimationTimeout = setTimeout(showNextFrame, 180);
+  }
+
+  showNextFrame();
+}
+
+function scheduleShoulderIdleAnimation() {
+  clearTimeout(shoulderIdleTimeout);
+
+  if (!gameActive) {
+    return;
+  }
+
+  shoulderIdleTimeout = setTimeout(function () {
+    if (!gameActive) {
+      return;
+    }
+
+    if (bucketSidekickAnimating) {
+      scheduleShoulderIdleAnimation();
+      return;
+    }
+
+    playShoulderAnimation(scheduleShoulderIdleAnimation);
+  }, 15000);
+}
+
+function playBucketCelebration(bucketNumber) {
+  clearTimeout(shoulderIdleTimeout);
+  stopShoulderAnimation();
+  clearTimeout(bucketCelebrationTimeout);
+
+  bucketSidekickAnimating = true;
+  const animationId = ++bucketCelebrationAnimationId;
+  const row = bucketNumber <= 2 ? 0 : bucketNumber <= 4 ? 1 : 2;
+  let frame = 0;
+
+  shoulderAnimation.hidden = true;
+  mainGirl.classList.remove("concealed");
+  sidekick.hidden = true;
+  girlBucketScene.classList.add("bucket-celebrating");
+  bucketCelebrationSprite.hidden = false;
+
+  function showNextFrame() {
+    if (animationId !== bucketCelebrationAnimationId) {
+      return;
+    }
+
+    const column = frame % 4;
+    bucketCelebrationSprite.style.backgroundPosition =
+      (column / 3) * 100 + "% " + (row / 2) * 100 + "%";
+
+    if (frame === 3) {
+      bucketCelebrationTimeout = setTimeout(function () {
+        if (animationId !== bucketCelebrationAnimationId) {
+          return;
+        }
+
+        bucketCelebrationSprite.hidden = true;
+        bucketCelebrationSprite.style.backgroundPosition = "0 0";
+        girlBucketScene.classList.remove("bucket-celebrating");
+        bucketSidekickAnimating = false;
+        playShoulderAnimation(scheduleShoulderIdleAnimation);
+      }, 150);
+      return;
+    }
+
+    frame += 1;
+    bucketCelebrationTimeout = setTimeout(showNextFrame, 150);
+  }
+
+  showNextFrame();
+}
+
+function resetDecorativeAnimations() {
+  clearTimeout(shoulderIdleTimeout);
+  clearTimeout(bucketCelebrationTimeout);
+  bucketCelebrationAnimationId += 1;
+  bucketCelebrationSprite.hidden = true;
+  bucketCelebrationSprite.style.backgroundPosition = "0 0";
+  girlBucketScene.classList.remove("bucket-celebrating");
+  bucketSidekickAnimating = false;
+  stopShoulderAnimation();
 }
 
 // Update the score, timer, and bucket
@@ -383,6 +538,7 @@ function collectItem(event) {
     flashPenalty();
   } else if (item.square === selectedPlayer - 1) {
     score = score + 1;
+    scheduleShoulderIdleAnimation();
 
     showFeedback(
       "Clean water collected! +1",
@@ -433,6 +589,7 @@ function startGame() {
 
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
+  clearTimeout(shoulderIdleTimeout);
 
   if (levelCleared) {
     level = level + 1;
@@ -454,6 +611,10 @@ function startGame() {
   setGirlCelebrating(false);
   resetPlayerSprite();
   updateDisplay();
+  if (!bucketSidekickAnimating && !shoulderAnimationRunning) {
+    playShoulderAnimation();
+  }
+  scheduleShoulderIdleAnimation();
 
   showFeedback(
     "Level " + level + ": collect " + getGoal() + " bottles! You are Player " +
@@ -484,6 +645,7 @@ function endGame() {
 
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
+  clearTimeout(shoulderIdleTimeout);
 
   hideItem();
 
@@ -499,6 +661,8 @@ function endGame() {
   if (playerWon) {
     levelCleared = true;
     startButton.textContent = "Start Level " + (level + 1);
+    completedBuckets += 1;
+    playBucketCelebration(completedBuckets);
     playPlayerAnimation(2, selectedPlayer === 4);
 
     showFeedback(
@@ -528,6 +692,8 @@ function resetGame() {
 
   clearTimeout(spawnTimeout);
   clearInterval(timerInterval);
+  completedBuckets = 0;
+  resetDecorativeAnimations();
 
   score = 0;
   level = 1;
