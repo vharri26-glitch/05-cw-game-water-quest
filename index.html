@@ -61,38 +61,6 @@
       </span>
     </h1>
 
-    <p class="game-instructions">
-      Pick a player, then tap the water bottle only when it reaches
-      your square. Collect the bottles before time runs out. Each
-      level gets faster!
-      Avoid dirty water!
-    </p>
-
-    <section class="player-select" aria-labelledby="choose-player-title">
-      <h2 id="choose-player-title">Choose Your Player</h2>
-
-      <div class="player-buttons" role="group" aria-labelledby="choose-player-title">
-        <button type="button" class="player-choice" data-player="1" aria-pressed="false">Player 1</button>
-        <button type="button" class="player-choice" data-player="2" aria-pressed="false">Player 2</button>
-        <button type="button" class="player-choice" data-player="3" aria-pressed="false">Player 3</button>
-        <button type="button" class="player-choice" data-player="4" aria-pressed="false">Player 4</button>
-      </div>
-
-      <p id="player-select-hint" class="player-select-hint">
-        Click a player button or a player on the court to unlock Start Game.
-      </p>
-
-      <div class="controls">
-        <button id="start-game" type="button" disabled>
-          Start Game
-        </button>
-
-        <button id="reset-game" type="button">
-          Reset
-        </button>
-      </div>
-    </section>
-
     <section class="stats">
       <p>
         Level
@@ -115,20 +83,26 @@
       class="achievement"
       role="status"
       aria-live="polite"
-    >
-      Press Start Game when you are ready.
-    </div>
+    ></div>
 
     <section class="game-layout">
       <div class="court-section">
+        <div class="controls">
+          <button id="start-game" type="button" disabled>
+            Start Game
+          </button>
+
+          <button id="reset-game" type="button">
+            Reset
+          </button>
+        </div>
+
         <div
           id="turn-status"
           class="turn-status idle"
           role="status"
           aria-live="polite"
-        >
-          Choose your player to begin
-        </div>
+        ></div>
 
         <div id="game-court" class="court choose-mode">
 
@@ -141,21 +115,25 @@
           <span id="you-label" class="you-label" aria-hidden="true">YOU</span>
 
           <!-- Four players -->
-          <img class="court-player player-one"
-               src="img/GIRL ONE ANIMATED.png"
-               alt="Player one">
+          <button class="court-player player-one"
+                  type="button"
+                  aria-label="Choose player 1"
+                  aria-pressed="false"></button>
 
-          <img class="court-player player-two"
-               src="img/BOY ONE ANIMATED.png"
-               alt="Player two">
+          <button class="court-player player-two"
+                  type="button"
+                  aria-label="Choose player 2"
+                  aria-pressed="false"></button>
 
-          <img class="court-player player-three"
-               src="img/GIRL TWO ANIMATED.png"
-               alt="Player three">
+          <button class="court-player player-three"
+                  type="button"
+                  aria-label="Choose player 3"
+                  aria-pressed="false"></button>
 
-          <img class="court-player player-four"
-               src="img/BOY TWO ANIMATED.png"
-               alt="Player four">
+          <button class="court-player player-four"
+                  type="button"
+                  aria-label="Choose player 4"
+                  aria-pressed="false"></button>
 
           <span class="court-number number-one">1</span>
           <span class="court-number number-two">2</span>

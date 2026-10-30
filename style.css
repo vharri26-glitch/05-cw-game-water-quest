@@ -72,14 +72,6 @@ h1 span {
   color: var(--blue);
 }
 
-.game-instructions {
-  max-width: 620px;
-  margin: 18px auto 24px;
-  color: var(--gray);
-  text-align: center;
-  line-height: 1.5;
-}
-
 /* Score and timer */
 .stats {
   display: grid;
@@ -118,6 +110,10 @@ h1 span {
   border-radius: 6px;
   font-weight: 800;
   line-height: 1.4;
+}
+
+.achievement:empty {
+  display: none;
 }
 
 .achievement.good {
@@ -531,18 +527,7 @@ h1 {
   transform: rotate(8deg);
 }
 
-.game-instructions {
-  max-width: 760px;
-  margin: 22px auto 26px;
-  padding: 18px 24px;
-  color: #1f1f1f;
-  background: #ffc907;
-  border: 3px solid #1f1f1f;
-  border-radius: 18px;
-  box-shadow: 5px 5px 0 #1f1f1f;
-  font-size: clamp(17px, 2vw, 22px);
-  font-weight: 900;
-}
+
 
 .stats p {
   min-height: 74px;
@@ -754,6 +739,40 @@ h1 {
   animation: player-bounce 2.4s ease-in-out infinite;
 }
 
+.court-player.player-one,
+.court-player.player-two,
+.court-player.player-three,
+.court-player.player-four {
+  height: 19%;
+  max-height: none;
+  padding: 0;
+  appearance: none;
+  border: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 400% 300%;
+}
+
+.court-player.player-one {
+  background-image: url("img/PLAYER-1-SPRITE.png");
+}
+
+.court-player.player-two {
+  background-image: url("img/PLAYER-2-SPRITE.png");
+}
+
+.court-player.player-three {
+  background-image: url("img/PLAYER-3-SPRITE.png");
+}
+
+.court-player.player-four {
+  background-image: url("img/PLAYER-4-SPRITE.png");
+  aspect-ratio: 1;
+  animation: none;
+  transform: none;
+}
+
 .player-one {
   top: 12%;
   left: 15.5%;
@@ -778,9 +797,6 @@ h1 {
 .player-four {
   top: 57%;
   left: 65.5%;
-  animation-name: player-sway;
-  animation-duration: 3.2s;
-  animation-delay: -2.2s;
 }
 
 /* Numbers sit above every player and the item */
@@ -851,64 +867,12 @@ h1 {
 
 /* ---------- PLAYER SELECTION AND TURN SYSTEM ---------- */
 
-.player-select {
-  max-width: 760px;
-  margin: 0 auto 20px;
-  padding: 16px 20px;
-  text-align: center;
-  background: #edf7ff;
-  border: 3px solid #1f1f1f;
-  border-radius: 18px;
-}
-
-.player-select h2 {
-  margin: 0 0 12px;
-  font-size: 22px;
-}
-
-.player-buttons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.player-choice {
-  min-height: 46px;
-  padding: 10px 20px;
-  color: #1f1f1f;
-  background: #ffffff;
-  border: 2px solid #1f1f1f;
-  border-radius: 999px;
-  box-shadow: 3px 3px 0 #1f1f1f;
-  font-size: 16px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.player-choice.selected {
-  color: #ffffff;
-  background: #0a8cff;
-}
-
-.player-choice:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.player-choice:focus-visible,
+.court-player:focus-visible,
 #start-game:focus-visible,
 #reset-game:focus-visible,
 .game-item:focus-visible {
   outline: 4px solid #0a8cff;
   outline-offset: 3px;
-}
-
-.player-select-hint {
-  margin: 12px 0 0;
-  color: #666057;
-  font-size: 14px;
-  font-weight: 700;
 }
 
 /* Turn message above the court */
@@ -921,6 +885,10 @@ h1 {
   font-size: clamp(17px, 2.6vw, 24px);
   font-weight: 900;
   letter-spacing: 0.5px;
+}
+
+.turn-status:empty {
+  display: none;
 }
 
 .turn-status.idle {
@@ -981,9 +949,9 @@ h1 {
 /* Selected player: bright blue outline and YOU label */
 .court-player.selected {
   filter:
-    drop-shadow(0 0 2px #0a8cff)
-    drop-shadow(0 0 2px #0a8cff)
-    drop-shadow(0 0 7px #0a8cff)
+    drop-shadow(0 0 4px #ffffff)
+    drop-shadow(0 0 8px #0a8cff)
+    drop-shadow(0 0 16px #0a8cff)
     drop-shadow(0 7px 5px rgba(0, 0, 0, 0.3));
 }
 
@@ -1189,22 +1157,7 @@ h1 {
   }
 }
 
-/* ---------- LARGER INSTRUCTIONS AND MISSION MESSAGE ---------- */
-
-.game-instructions {
-  max-width: 900px;
-  padding: 22px 28px;
-  font-size: clamp(20px, 3vw, 30px);
-  line-height: 1.4;
-}
-
-.player-select h2 {
-  font-size: clamp(24px, 3.2vw, 32px);
-}
-
-.player-select-hint {
-  font-size: clamp(16px, 2vw, 20px);
-}
+/* Mission message */
 
 .court-hint {
   margin-top: 14px;
@@ -1261,9 +1214,7 @@ h1 {
 }
 
 .court.choose-mode .player-four {
-  animation:
-    player-sway 3.2s ease-in-out infinite -2.2s,
-    pick-glow 4s ease-in-out infinite 3s;
+  animation: pick-glow 4s ease-in-out infinite 3s;
 }
 
 .court.choose-mode .number-one {
@@ -1435,19 +1386,20 @@ body {
   box-shadow: 5px 5px 0 #ffc907;
 }
 
-/* Start/Reset now sit at the top of the girl card */
-.beneficiary-card .controls {
-  margin: 0 0 18px;
+.court-section > .controls {
+  margin: 0 0 12px;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
-.beneficiary-card #start-game,
-.beneficiary-card #reset-game {
-  min-height: 52px;
-  padding: 12px 22px;
+.court-section > .controls #start-game,
+.court-section > .controls #reset-game {
+  min-height: 54px;
+  padding: 12px 24px;
+  font-size: 18px;
 }
 
-.beneficiary-card #start-game:disabled {
+.court-section > .controls #start-game:disabled {
   color: #1f1f1f;
 }
 
@@ -1533,37 +1485,20 @@ body {
   aspect-ratio: 0.9;
 }
 
-/* Start and Reset live in the Choose Your Player panel (always on screen) */
-.player-select .controls {
-  margin: 14px 0 0;
-  flex-wrap: wrap;
-}
-
-.player-select #start-game,
-.player-select #reset-game {
-  min-height: 56px;
-  padding: 14px 32px;
-  font-size: clamp(18px, 2.4vw, 22px);
-}
-
-.player-select #start-game:disabled {
-  color: #1f1f1f;
-}
-
-/* Small phones: keep Start/Reset near the top and on one line */
+/* Keep Start and Reset prominent above the court on small screens */
 @media (max-width: 480px) {
-  .game-instructions {
-    margin: 14px auto 16px;
-    padding: 12px 14px;
-    font-size: 16px;
-    line-height: 1.35;
+  .court-section > .controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
-  .player-select #start-game,
-  .player-select #reset-game {
-    min-height: 52px;
-    padding: 12px 18px;
-    font-size: 17px;
+  .court-section > .controls #start-game,
+  .court-section > .controls #reset-game {
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 8px;
+    font-size: clamp(15px, 4vw, 18px);
     white-space: nowrap;
   }
 }
@@ -1601,10 +1536,4 @@ body {
 /* Final readability pass */
 .achievement {
   font-size: clamp(18px, 2.4vw, 24px);
-}
-
-.player-choice {
-  min-height: 48px;
-  padding: 10px 20px;
-  font-size: clamp(16px, 2vw, 20px);
 }

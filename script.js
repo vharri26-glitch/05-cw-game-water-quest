@@ -25,6 +25,8 @@ const itemPool = [];
 let turnCount = 0;
 let spawnTimeout;
 let timerInterval;
+let playerAnimationTimeout;
+let animatedPlayer = null;
 
 // Random winning messages
 const winningMessages = [
@@ -75,8 +77,6 @@ const bucketImage = document.getElementById("bucket-image");
 const bucketProgress = document.getElementById("bucket-progress");
 const confettiContainer = document.getElementById("confetti");
 const youLabel = document.getElementById("you-label");
-const playerHint = document.getElementById("player-select-hint");
-const playerButtons = document.querySelectorAll(".player-choice");
 const courtPlayers = document.querySelectorAll(".court-player");
 const court = document.getElementById("game-court");
 const courtSquares = document.querySelectorAll(".court-square");
@@ -165,11 +165,49 @@ function highlightSquare(squareIndex) {
   });
 }
 
-// Lock or unlock the player buttons
-function setPlayerButtonsDisabled(disabled) {
-  playerButtons.forEach(function (button) {
-    button.disabled = disabled;
-  });
+// Play one row of the selected player's four-frame sprite sheet.
+function playPlayerAnimation(row, holdFinalFrame) {
+  if (selectedPlayer === null) {
+    return;
+  }
+
+  resetPlayerSprite();
+  animatedPlayer = courtPlayers[selectedPlayer - 1];
+
+  let frame = 0;
+
+  function showNextFrame() {
+    const columnPosition = (frame / 3) * 100;
+    const rowPosition = (row / 2) * 100;
+
+    animatedPlayer.style.backgroundPosition =
+      columnPosition + "% " + rowPosition + "%";
+
+    if (frame === 3) {
+      if (holdFinalFrame) {
+        return;
+      }
+
+      playerAnimationTimeout = setTimeout(function () {
+        resetPlayerSprite();
+      }, frameDuration);
+      return;
+    }
+
+    frame += 1;
+    playerAnimationTimeout = setTimeout(showNextFrame, frameDuration);
+  }
+
+  const frameDuration = selectedPlayer === 4 ? 150 : 120;
+  showNextFrame();
+}
+
+function resetPlayerSprite() {
+  clearTimeout(playerAnimationTimeout);
+  if (animatedPlayer) {
+    animatedPlayer.style.backgroundPosition = "0 0";
+    animatedPlayer = null;
+  }
 }
 
 // Choose which player the user controls
@@ -178,36 +216,22 @@ function selectPlayer(playerNumber) {
     return;
   }
 
+  resetPlayerSprite();
   selectedPlayer = playerNumber;
   court.classList.remove("choose-mode");
 
-  playerButtons.forEach(function (button) {
-    const isSelected = Number(button.dataset.player) === playerNumber;
-
-    button.classList.toggle("selected", isSelected);
-    button.setAttribute("aria-pressed", isSelected);
-  });
-
   courtPlayers.forEach(function (player, index) {
-    player.classList.toggle("selected", index === playerNumber - 1);
+    const isSelected = index === playerNumber - 1;
+
+    player.classList.toggle("selected", isSelected);
+    player.setAttribute("aria-pressed", isSelected);
   });
 
   youLabel.className = "you-label visible you-" + playerNumber;
 
   startButton.disabled = false;
 
-  playerHint.textContent =
-    "You are Player " + playerNumber + ". Press Start Game!";
-
-  showTurnStatus(
-    "You are Player " + playerNumber + " — press Start Game",
-    "idle"
-  );
-
-  showFeedback(
-    "Player " + playerNumber + " selected. Press Start Game when ready.",
-    "good"
-  );
+  showTurnStatus("Player " + playerNumber + " selected.", "idle");
 }
 
 // Remove every item, the arrow, and the square glow
@@ -316,6 +340,7 @@ function spawnItem() {
   });
 
   if (mine && mine.type === "water") {
+    playPlayerAnimation(0);
     highlightSquare(myIndex);
     showTurnStatus("YOUR TURN — CLICK NOW!", "your-turn");
   } else if (mine) {
@@ -347,6 +372,7 @@ function collectItem(event) {
 
   if (item.type !== "water") {
     score = Math.max(0, score - COLA_PENALTY);
+    playPlayerAnimation(1);
 
     showFeedback(
       "Oh no, " + "the " + badItemInfo[item.type].label +
@@ -420,13 +446,13 @@ function startGame() {
 
   startButton.disabled = true;
   startButton.textContent = "Level " + level + " Running";
-  setPlayerButtonsDisabled(true);
   court.classList.add("game-running");
 
   confettiContainer.innerHTML = "";
 
   hideItem();
   setGirlCelebrating(false);
+  resetPlayerSprite();
   updateDisplay();
 
   showFeedback(
@@ -462,7 +488,6 @@ function endGame() {
   hideItem();
 
   startButton.disabled = false;
-  setPlayerButtonsDisabled(false);
   court.classList.remove("game-running");
 
   const playerWon = score >= getGoal();
@@ -474,6 +499,7 @@ function endGame() {
   if (playerWon) {
     levelCleared = true;
     startButton.textContent = "Start Level " + (level + 1);
+    playPlayerAnimation(2, selectedPlayer === 4);
 
     showFeedback(
       "Level " + level + " complete! " + randomMessage +
@@ -511,11 +537,11 @@ function resetGame() {
 
   hideItem();
   setGirlCelebrating(false);
+  resetPlayerSprite();
 
-  // Start stays locked until a player is chosen
+  // Start stays locked until a player is selected
   startButton.disabled = selectedPlayer === null;
   startButton.textContent = "Start Game";
-  setPlayerButtonsDisabled(false);
   court.classList.remove("game-running");
 
   confettiContainer.innerHTML = "";
@@ -523,18 +549,12 @@ function resetGame() {
   updateDisplay();
 
   if (selectedPlayer === null) {
-    showTurnStatus("Choose your player to begin", "idle");
+    showTurnStatus("", "idle");
   } else {
-    showTurnStatus(
-      "You are Player " + selectedPlayer + " — press Start Game",
-      "idle"
-    );
+    showTurnStatus("Player " + selectedPlayer + " selected.", "idle");
   }
 
-  showFeedback(
-    "Game reset. Press Start Game when ready.",
-    "good"
-  );
+  showFeedback("Game reset.", "good");
 }
 
 // Create the celebration
@@ -561,18 +581,20 @@ function createConfetti() {
   }
 }
 
-// Button and game controls
-playerButtons.forEach(function (button) {
-  button.addEventListener("click", function () {
-    selectPlayer(Number(button.dataset.player));
-  });
-});
-
-// Players on the court can be clicked too
+// Players on the court are the only way to choose a character
 courtPlayers.forEach(function (player, index) {
   player.addEventListener("click", function () {
     selectPlayer(index + 1);
   });
+
+  if (player.tagName !== "BUTTON") {
+    player.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectPlayer(index + 1);
+      }
+    });
+  }
 });
 
 gameItem.addEventListener("click", collectItem);
